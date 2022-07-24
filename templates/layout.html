@@ -19,18 +19,19 @@
         <li class="nav-item navbar-brand">
           <a class="nav-link" href="/">miniWMS</a>
         </li>
+        {% if user %}
         <div class="d-flex align-items-center">
           <li class="nav-item">
             <a class="nav-link" href="#">lookup</a>
           </li>
           <li class="nav-item">
-            <a class="nav-link" href="#">import</a>
+            <a class="nav-link" href="#">receipt</a>
           </li>
           <li class="nav-item">
-            <a class="nav-link" href="#">export</a>
+            <a class="nav-link" href="#">stock issue</a>
           </li>
           <li class="nav-item">
-            <a class="nav-link" href="#">Home</a>
+            <a class="nav-link" href="#">move</a>
           </li>
           <li class="nav-item dropdown">
             <a
@@ -45,10 +46,25 @@
             <ul class="dropdown-menu">
               <li><a class="dropdown-item" href="#">create category</a></li>
               <li><a class="dropdown-item" href="#">create goods type</a></li>
-              <li><a class="dropdown-item" href="#">create new outside org</a></li>
+              <li>
+                <a class="dropdown-item" href="#">create new outside org</a>
+              </li>
             </ul>
           </li>
         </div>
+      </ul>
+      <ul class="nav navbar-nav ms-auto">
+        <li class="nav-item">
+          <a class="nav-link text-end" href="#">Log out</a>
+        </li>
+      </ul>
+      {% else %}
+    </ul>
+      <ul class="nav navbar-nav ms-auto">
+        <li class="nav-item">
+          <a class="nav-link text-end" href="#">Log in</a>
+        </li>
+        {% endif %}
       </ul>
     </nav>
   </body>
