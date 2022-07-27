@@ -1,5 +1,3 @@
-CREATE DATABASE  IF NOT EXISTS `miniwms` /*!40100 DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci */ /*!80016 DEFAULT ENCRYPTION='N' */;
-USE `miniwms`;
 -- MySQL dump 10.13  Distrib 8.0.29, for Win64 (x86_64)
 --
 -- Host: localhost    Database: miniwms
@@ -73,6 +71,43 @@ LOCK TABLES `good_type` WRITE;
 UNLOCK TABLES;
 
 --
+-- Table structure for table `issue`
+--
+
+DROP TABLE IF EXISTS `issue`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `issue` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `customer` int DEFAULT NULL,
+  `user_executing` int NOT NULL,
+  `user_approving` int DEFAULT NULL,
+  `position` int DEFAULT NULL,
+  `time_info` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `comment` varchar(1000) DEFAULT NULL,
+  `departure` datetime DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `is-user_idx` (`user_executing`),
+  KEY `is-pos_idx` (`position`),
+  KEY `is-org_idx` (`customer`),
+  KEY `is-user2_idx` (`user_approving`),
+  CONSTRAINT `is-org` FOREIGN KEY (`customer`) REFERENCES `outside_org` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
+  CONSTRAINT `is-pos` FOREIGN KEY (`position`) REFERENCES `position` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
+  CONSTRAINT `is-user` FOREIGN KEY (`user_executing`) REFERENCES `user` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
+  CONSTRAINT `is-user2` FOREIGN KEY (`user_approving`) REFERENCES `user` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `issue`
+--
+
+LOCK TABLES `issue` WRITE;
+/*!40000 ALTER TABLE `issue` DISABLE KEYS */;
+/*!40000 ALTER TABLE `issue` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
 -- Table structure for table `operation`
 --
 
@@ -82,20 +117,20 @@ DROP TABLE IF EXISTS `operation`;
 CREATE TABLE `operation` (
   `id` int NOT NULL AUTO_INCREMENT,
   `ops_type` int NOT NULL,
-  `user` int NOT NULL,
-  `org` int DEFAULT NULL,
+  `user_executing` int NOT NULL,
   `postition` int DEFAULT NULL,
   `comment` varchar(1000) DEFAULT NULL,
-  `time` datetime NOT NULL,
+  `time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `user_approving` int DEFAULT NULL,
   PRIMARY KEY (`id`),
-  KEY `org-ops_idx` (`org`),
   KEY `ops-type_idx` (`ops_type`),
-  KEY `ops-user_idx` (`user`),
+  KEY `ops-user_idx` (`user_executing`),
   KEY `ops-pos_idx` (`postition`),
+  KEY `userappr-ops_idx` (`user_approving`),
   CONSTRAINT `ops-pos` FOREIGN KEY (`postition`) REFERENCES `position` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
   CONSTRAINT `ops-type` FOREIGN KEY (`ops_type`) REFERENCES `operation_type` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
-  CONSTRAINT `ops-user` FOREIGN KEY (`user`) REFERENCES `user` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
-  CONSTRAINT `org-ops` FOREIGN KEY (`org`) REFERENCES `outside_org` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT
+  CONSTRAINT `ops-user` FOREIGN KEY (`user_executing`) REFERENCES `user` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
+  CONSTRAINT `userappr-ops` FOREIGN KEY (`user_approving`) REFERENCES `user` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -196,6 +231,7 @@ CREATE TABLE `position` (
   `column` int NOT NULL,
   `cell` int DEFAULT NULL,
   `warehouse` int DEFAULT NULL,
+  `zone` varchar(45) DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `position-warehouse_idx` (`warehouse`),
   CONSTRAINT `position-warehouse` FOREIGN KEY (`warehouse`) REFERENCES `warehouse` (`id`)
@@ -212,6 +248,43 @@ LOCK TABLES `position` WRITE;
 UNLOCK TABLES;
 
 --
+-- Table structure for table `receipt`
+--
+
+DROP TABLE IF EXISTS `receipt`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `receipt` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `supplier` int DEFAULT NULL,
+  `user_executing` int NOT NULL,
+  `user_approving` int DEFAULT NULL,
+  `position` int DEFAULT NULL,
+  `time_info` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `comment` varchar(1000) DEFAULT NULL,
+  `arrival` datetime DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `re-user_idx` (`user_executing`),
+  KEY `re-pos_idx` (`position`),
+  KEY `re-org_idx` (`supplier`),
+  KEY `re-user2_idx` (`user_approving`),
+  CONSTRAINT `re-org` FOREIGN KEY (`supplier`) REFERENCES `outside_org` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
+  CONSTRAINT `re-pos` FOREIGN KEY (`position`) REFERENCES `position` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
+  CONSTRAINT `re-user` FOREIGN KEY (`user_executing`) REFERENCES `user` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
+  CONSTRAINT `re-user2` FOREIGN KEY (`user_approving`) REFERENCES `user` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `receipt`
+--
+
+LOCK TABLES `receipt` WRITE;
+/*!40000 ALTER TABLE `receipt` DISABLE KEYS */;
+/*!40000 ALTER TABLE `receipt` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
 -- Table structure for table `record`
 --
 
@@ -222,8 +295,18 @@ CREATE TABLE `record` (
   `id` int NOT NULL AUTO_INCREMENT,
   `comment` varchar(1000) DEFAULT NULL,
   `type` int NOT NULL,
+  `receipt` int NOT NULL,
+  `issue` int DEFAULT NULL,
+  `current_position` int NOT NULL,
+  `last_update` timestamp NULL DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `record-type_idx` (`type`),
+  KEY `record-issue_idx` (`issue`),
+  KEY `record-recepit_idx` (`receipt`),
+  KEY `position_idx` (`current_position`),
+  CONSTRAINT `position` FOREIGN KEY (`current_position`) REFERENCES `position` (`id`),
+  CONSTRAINT `record-issue` FOREIGN KEY (`issue`) REFERENCES `issue` (`id`),
+  CONSTRAINT `record-recepit` FOREIGN KEY (`receipt`) REFERENCES `receipt` (`id`),
   CONSTRAINT `record-type` FOREIGN KEY (`type`) REFERENCES `good_type` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -439,4 +522,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2022-07-18 19:49:41
+-- Dump completed on 2022-07-27 13:08:15
