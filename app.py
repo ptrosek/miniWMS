@@ -1,15 +1,18 @@
 import flask
 from flask_session import Session
 
-
+from helpers import login_required
 app = flask.Flask(__name__)
 
 app.config["TEMPLATES_AUTO_RELOAD"] = True
 app.config["SESSION_PERMANENT"] = False
 
 Session(app)
-user = flask.session.get("user_id")
-
 @app.route("/")
-def test():
-    return flask.render_template("layout.html", user)
+@login_required
+def index_worker():
+    return flask.render_template("index.html")
+
+@app.route("/login")
+def login():
+    return flask.render_template("login.html")
