@@ -1,0 +1,31 @@
+{% extends "layout.html" %} {% block title %}create category{% endblock %} {%
+block main %}
+<div class="mb-3">
+  <form action="/category" method="post" class="mb-3">
+    <div class="mb-3">
+      <label for="name" class="form-label"></label>
+      <input
+        type="text"
+        class="form-control"
+        name="name"
+        id="name"
+        aria-describedby="helpId"
+        placeholder="name"
+        maxlength="255"
+      />
+    </div>
+    <div class="mb-3">
+      <label for="desc" class="form-label"></label>
+      <textarea
+        class="form-control"
+        name="desc"
+        id="desc"
+        rows="3"
+        maxlength="1000"
+        placeholder="description"
+      ></textarea>
+    </div>
+    <button type="submit" class="btn btn-primary">Submit</button>
+  </form>
+</div>
+{% endblock %}
