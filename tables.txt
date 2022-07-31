@@ -1,0 +1,118 @@
+Table category:
+category.id (INTEGER)
+category.name (VARCHAR(255))
+category.description (VARCHAR(1000))
+
+Table operation_type:
+operation_type.id (INTEGER)
+operation_type.name (VARCHAR(255))
+operation_type.description (VARCHAR(1000))
+operation_type.operation_link (VARCHAR(255))
+
+Table outside_org:
+outside_org.id (INTEGER)
+outside_org.name (VARCHAR(255))
+outside_org.mail (VARCHAR(255))
+outside_org.bank_info (VARCHAR(255))
+outside_org.addres (VARCHAR(255))
+
+Table package_type:
+package_type.id (INTEGER)
+package_type.name (VARCHAR(255))
+
+Table user:
+user.id (INTEGER)
+user.name (VARCHAR(255))
+user.hash (VARCHAR(1000))
+user.mail (VARCHAR(255))
+user.phone (VARCHAR(255))
+user.first_name (VARCHAR(255))
+user.last_name (VARCHAR(255))
+
+Table user_type:
+user_type.id (INTEGER)
+user_type.type (VARCHAR(255))
+
+Table warehouse:
+warehouse.id (INTEGER)
+warehouse.name (VARCHAR(255))
+warehouse.addres (VARCHAR(255))
+warehouse.city (VARCHAR(255))
+warehouse.state (VARCHAR(255))
+warehouse.country (VARCHAR(255))
+warehouse.size (VARCHAR(255))
+warehouse.description (VARCHAR(1000))
+
+Table good_type:
+good_type.id (INTEGER)
+good_type.name (VARCHAR(255))
+good_type.ean (INTEGER)
+good_type.size (VARCHAR(100))
+good_type.weight (VARCHAR(100))
+good_type.package_type_gt (INTEGER)
+
+Table position:
+position.id (INTEGER)
+position.row (INTEGER)
+position.column (INTEGER)
+position.cell (INTEGER)
+position.warehouse_pos (INTEGER)
+position.zone (VARCHAR(45))
+
+Table user__user_type:
+user__user_type.id (INTEGER)
+user__user_type.user_id (INTEGER)
+user__user_type.type_id (INTEGER)
+
+Table warehouse__category:
+warehouse__category.id (INTEGER)
+warehouse__category.idwarehouse (INTEGER)
+warehouse__category.idcategory (INTEGER)
+
+Table issue:
+issue.id (INTEGER)
+issue.customer (INTEGER)
+issue.user_executing (INTEGER)
+issue.user_approving (INTEGER)
+issue.position_is (INTEGER)
+issue.time_info (TIMESTAMP)
+issue.comment (VARCHAR(1000))
+issue.departure (DATETIME)
+
+Table operation:
+operation.id (INTEGER)
+operation.ops_type (INTEGER)
+operation.user_executing (INTEGER)
+operation.postition (INTEGER)
+operation.comment (VARCHAR(1000))
+operation.time (TIMESTAMP)
+operation.user_approving (INTEGER)
+
+Table receipt:
+receipt.id (INTEGER)
+receipt.supplier (INTEGER)
+receipt.user_executing (INTEGER)
+receipt.user_approving (INTEGER)
+receipt.position_re (INTEGER)
+receipt.time_info (TIMESTAMP)
+receipt.comment (VARCHAR(1000))
+receipt.arrival (DATETIME)
+
+Table type__category:
+type__category.id (INTEGER)
+type__category.categoryid (INTEGER)
+type__category.type_id (INTEGER)
+
+Table record:
+record.id (INTEGER)
+record.comment (VARCHAR(1000))
+record.type (INTEGER)
+record.receipt_rec (INTEGER)
+record.issue_rec (INTEGER)
+record.current_position (INTEGER)
+record.last_update (TIMESTAMP)
+
+Table record_ops:
+record_ops.id (INTEGER)
+record_ops.record_id (INTEGER)
+record_ops.ops_id (INTEGER)

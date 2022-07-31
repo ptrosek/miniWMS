@@ -18,6 +18,9 @@
 --
 -- Table structure for table `category`
 --
+DROP Database IF EXISTS `miniwms`;
+CREATE Database `miniwms`;
+USE `miniwms`;
 
 DROP TABLE IF EXISTS `category`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -53,11 +56,11 @@ CREATE TABLE `good_type` (
   `ean` int DEFAULT NULL,
   `size` varchar(100) DEFAULT NULL,
   `weight` varchar(100) DEFAULT NULL,
-  `package_type` int DEFAULT NULL,
+  `package_type_gt` int DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `idgood_type_UNIQUE` (`id`),
-  KEY `good_type-package_idx` (`package_type`),
-  CONSTRAINT `good_type-package` FOREIGN KEY (`package_type`) REFERENCES `package_type` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT
+  KEY `good_type-package_idx` (`package_type_gt`),
+  CONSTRAINT `good_type-package` FOREIGN KEY (`package_type_gt`) REFERENCES `package_type` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -82,17 +85,17 @@ CREATE TABLE `issue` (
   `customer` int DEFAULT NULL,
   `user_executing` int NOT NULL,
   `user_approving` int DEFAULT NULL,
-  `position` int DEFAULT NULL,
+  `position_is` int DEFAULT NULL,
   `time_info` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `comment` varchar(1000) DEFAULT NULL,
   `departure` datetime DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `is-user_idx` (`user_executing`),
-  KEY `is-pos_idx` (`position`),
+  KEY `is-pos_idx` (`position_is`),
   KEY `is-org_idx` (`customer`),
   KEY `is-user2_idx` (`user_approving`),
   CONSTRAINT `is-org` FOREIGN KEY (`customer`) REFERENCES `outside_org` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
-  CONSTRAINT `is-pos` FOREIGN KEY (`position`) REFERENCES `position` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
+  CONSTRAINT `is-pos` FOREIGN KEY (`position_is`) REFERENCES `position` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
   CONSTRAINT `is-user` FOREIGN KEY (`user_executing`) REFERENCES `user` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
   CONSTRAINT `is-user2` FOREIGN KEY (`user_approving`) REFERENCES `user` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
@@ -180,7 +183,7 @@ CREATE TABLE `outside_org` (
   `id` int NOT NULL AUTO_INCREMENT,
   `name` varchar(255) NOT NULL,
   `mail` varchar(255) DEFAULT NULL,
-  `bank info` varchar(255) DEFAULT NULL,
+  `bank_info` varchar(255) DEFAULT NULL,
   `addres` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
@@ -230,11 +233,11 @@ CREATE TABLE `position` (
   `row` int NOT NULL,
   `column` int NOT NULL,
   `cell` int DEFAULT NULL,
-  `warehouse` int DEFAULT NULL,
+  `warehouse_pos` int DEFAULT NULL,
   `zone` varchar(45) DEFAULT NULL,
   PRIMARY KEY (`id`),
-  KEY `position-warehouse_idx` (`warehouse`),
-  CONSTRAINT `position-warehouse` FOREIGN KEY (`warehouse`) REFERENCES `warehouse` (`id`)
+  KEY `position-warehouse_idx` (`warehouse_pos`),
+  CONSTRAINT `position-warehouse` FOREIGN KEY (`warehouse_pos`) REFERENCES `warehouse` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -259,17 +262,17 @@ CREATE TABLE `receipt` (
   `supplier` int DEFAULT NULL,
   `user_executing` int NOT NULL,
   `user_approving` int DEFAULT NULL,
-  `position` int DEFAULT NULL,
+  `position_re` int DEFAULT NULL,
   `time_info` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `comment` varchar(1000) DEFAULT NULL,
   `arrival` datetime DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `re-user_idx` (`user_executing`),
-  KEY `re-pos_idx` (`position`),
+  KEY `re-pos_idx` (`position_re`),
   KEY `re-org_idx` (`supplier`),
   KEY `re-user2_idx` (`user_approving`),
   CONSTRAINT `re-org` FOREIGN KEY (`supplier`) REFERENCES `outside_org` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
-  CONSTRAINT `re-pos` FOREIGN KEY (`position`) REFERENCES `position` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
+  CONSTRAINT `re-pos` FOREIGN KEY (`position_re`) REFERENCES `position` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
   CONSTRAINT `re-user` FOREIGN KEY (`user_executing`) REFERENCES `user` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
   CONSTRAINT `re-user2` FOREIGN KEY (`user_approving`) REFERENCES `user` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
@@ -295,18 +298,18 @@ CREATE TABLE `record` (
   `id` int NOT NULL AUTO_INCREMENT,
   `comment` varchar(1000) DEFAULT NULL,
   `type` int NOT NULL,
-  `receipt` int NOT NULL,
-  `issue` int DEFAULT NULL,
+  `receipt_rec` int NOT NULL,
+  `issue_rec` int DEFAULT NULL,
   `current_position` int NOT NULL,
   `last_update` timestamp NULL DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `record-type_idx` (`type`),
-  KEY `record-issue_idx` (`issue`),
-  KEY `record-recepit_idx` (`receipt`),
+  KEY `record-issue_idx` (`issue_rec`),
+  KEY `record-recepit_idx` (`receipt_rec`),
   KEY `position_idx` (`current_position`),
   CONSTRAINT `position` FOREIGN KEY (`current_position`) REFERENCES `position` (`id`),
-  CONSTRAINT `record-issue` FOREIGN KEY (`issue`) REFERENCES `issue` (`id`),
-  CONSTRAINT `record-recepit` FOREIGN KEY (`receipt`) REFERENCES `receipt` (`id`),
+  CONSTRAINT `record-issue` FOREIGN KEY (`issue_rec`) REFERENCES `issue` (`id`),
+  CONSTRAINT `record-recepit` FOREIGN KEY (`receipt_rec`) REFERENCES `receipt` (`id`),
   CONSTRAINT `record-type` FOREIGN KEY (`type`) REFERENCES `good_type` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -352,10 +355,10 @@ UNLOCK TABLES;
 -- Table structure for table `type-category`
 --
 
-DROP TABLE IF EXISTS `type-category`;
+DROP TABLE IF EXISTS `type__category`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `type-category` (
+CREATE TABLE `type__category` (
   `id` int NOT NULL AUTO_INCREMENT,
   `categoryid` int NOT NULL,
   `type_id` int NOT NULL,
@@ -371,9 +374,9 @@ CREATE TABLE `type-category` (
 -- Dumping data for table `type-category`
 --
 
-LOCK TABLES `type-category` WRITE;
-/*!40000 ALTER TABLE `type-category` DISABLE KEYS */;
-/*!40000 ALTER TABLE `type-category` ENABLE KEYS */;
+LOCK TABLES `type__category` WRITE;
+/*!40000 ALTER TABLE `type__category` DISABLE KEYS */;
+/*!40000 ALTER TABLE `type__category` ENABLE KEYS */;
 UNLOCK TABLES;
 
 --
@@ -409,10 +412,10 @@ UNLOCK TABLES;
 -- Table structure for table `user-user_type`
 --
 
-DROP TABLE IF EXISTS `user-user_type`;
+DROP TABLE IF EXISTS `user__user_type`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `user-user_type` (
+CREATE TABLE `user__user_type` (
   `id` int NOT NULL AUTO_INCREMENT,
   `user_id` int NOT NULL,
   `type_id` int NOT NULL,
@@ -428,9 +431,9 @@ CREATE TABLE `user-user_type` (
 -- Dumping data for table `user-user_type`
 --
 
-LOCK TABLES `user-user_type` WRITE;
-/*!40000 ALTER TABLE `user-user_type` DISABLE KEYS */;
-/*!40000 ALTER TABLE `user-user_type` ENABLE KEYS */;
+LOCK TABLES `user__user_type` WRITE;
+/*!40000 ALTER TABLE `user__user_type` DISABLE KEYS */;
+/*!40000 ALTER TABLE `user__user_type` ENABLE KEYS */;
 UNLOCK TABLES;
 
 --
@@ -489,10 +492,10 @@ UNLOCK TABLES;
 -- Table structure for table `warehouse-cateogry`
 --
 
-DROP TABLE IF EXISTS `warehouse-cateogry`;
+DROP TABLE IF EXISTS `warehouse__category`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `warehouse-cateogry` (
+CREATE TABLE `warehouse__category` (
   `id` int NOT NULL AUTO_INCREMENT,
   `idwarehouse` int DEFAULT NULL,
   `idcategory` int DEFAULT NULL,
@@ -508,9 +511,9 @@ CREATE TABLE `warehouse-cateogry` (
 -- Dumping data for table `warehouse-cateogry`
 --
 
-LOCK TABLES `warehouse-cateogry` WRITE;
-/*!40000 ALTER TABLE `warehouse-cateogry` DISABLE KEYS */;
-/*!40000 ALTER TABLE `warehouse-cateogry` ENABLE KEYS */;
+LOCK TABLES `warehouse__category` WRITE;
+/*!40000 ALTER TABLE `warehouse__category` DISABLE KEYS */;
+/*!40000 ALTER TABLE `warehouse__category` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 

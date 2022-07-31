@@ -1,10 +1,9 @@
-from sqlite3 import Cursor
 import flask
 import os
 from flask_session import Session
 from werkzeug.security import check_password_hash, generate_password_hash
-import mysql.connector
-
+import sqlalchemy as sa
+from sqlalchemy.ext.automap import automap_base
 from helpers import login_required
 app = flask.Flask(__name__)
 
@@ -12,22 +11,45 @@ app.config["TEMPLATES_AUTO_RELOAD"] = True
 app.config["SESSION_PERMANENT"] = False
 app.config["SESSION_TYPE"] = "filesystem"
 
-
 Session(app)
 # db setup
-DB_USER = os.environ.get("DB_USER_MWS")
-DB_PASS = os.environ.get("DB_PASS_MWS")
-mysql_config = {
-    'user':DB_USER,
-    'password':DB_PASS,
-    'host':'localhost',
-    'database':'miniwms',
-    'port':'3306',
-    # 'ssl_disabled': True
-}
-mydb = mysql.connector.connect(**mysql_config)
-cursor=mydb.cursor()
-print(mydb)
+DB_USER = os.environ.get('DB_USER_MWS')
+# print(DB_USER)
+DB_PASS = os.environ.get('DB_PASS_MWS')
+# print(DB_PASS)
+txt = 'mysql://{duser}:{dpass}@localhost/miniwms'.format(duser = DB_USER, dpass = DB_PASS)
+engine = sa.create_engine(txt, echo=False, future=True)
+meta = sa.MetaData()
+# conn = engine.connect()
+Base = automap_base()
+Base.prepare(engine)
+dbs = sa.orm.Session(engine)
+# Show the metadata
+# for t in Base.metadata.sorted_tables:
+#           print(f"\nTable {t.name}:")
+#           for c in t.columns:
+            #   print(f"{c} ({c.type})")
+good_type = Base.classes.good_type
+category = Base.classes.category
+operation_type = Base.classes.operation_type
+outside_org = Base.classes.outside_org
+package_type = Base.classes.package_type
+user = Base.classes.user
+user_type = Base.classes.user_type
+warehouse = Base.classes.warehouse
+position = Base.classes.position
+user__user_type = Base.classes.user__user_type
+warehouse__category = Base.classes.warehouse__category
+issue = Base.classes.issue
+operation = Base.classes.operation
+receipt = Base.classes.receipt
+type__category = Base.classes.type__category
+record = Base.classes.record
+record_ops = Base.classes.record_ops
+t = dbs.query(good_type).all()
+for r in t:
+     print(r.name)
+print(t)
 @app.route("/")
 @login_required
 def index_worker():
@@ -38,7 +60,6 @@ def login():
     """Log user in"""
     # Forget any user_id
     flask.session.clear()
-
     # User reached route via POST (as by submitting a form via POST)
     if flask.request.method == "POST":
 
@@ -66,4 +87,4 @@ def login():
     # User reached route via GET (as by clicking a link or via redirect)
     else:
         return flask.render_template("login.html")
-mydb.close()
+        

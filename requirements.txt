@@ -13,6 +13,7 @@ itsdangerous==2.1.2
 Jinja2==3.1.2
 MarkupSafe==2.1.1
 mysql-connector-python==8.0.30
+mysql-connector-python-rf==2.2.2
 numpy==1.23.1
 opencv-python==4.6.0.66
 Pillow==9.2.0
@@ -26,7 +27,7 @@ python-barcode==0.14.0
 qrcode==7.3.1
 six==1.16.0
 tinycss2==1.1.1
-weasyprint==56.0
+weasyprint==56.1
 webencodings==0.5.1
-Werkzeug==2.1.2
+Werkzeug==2.2.1
 zopfli==0.2.1
