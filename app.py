@@ -1,4 +1,3 @@
-from crypt import methods
 import flask
 import os
 from flask_session import Session
@@ -25,7 +24,6 @@ engine = sa.create_engine(txt, echo=True, future=True)
 meta = sa.MetaData()
 Base = automap_base()
 Base.prepare(engine)
-dbs = sa.orm.Session(engine)
 # Show the metadata
 # for t in Base.metadata.sorted_tables:
 #           conn = engine.connect()
@@ -52,7 +50,6 @@ type__category = Base.classes.type__category
 record = Base.classes.record
 record_ops = Base.classes.record_ops
 
-conn = engine.connect()
 # test query
 # conn = engine.connect()
 # t = dbs.query(good_type).all()
@@ -63,6 +60,8 @@ conn = engine.connect()
 
 # create admin user 
 def create_admin():
+    dbs = sa.orm.Session(engine)
+    dbs.begin()
     admin = user(
         id = 1,
         name = "admin",
@@ -73,6 +72,7 @@ def create_admin():
     return
 # create_admin()
 
+# clearing logged in people
 @app.route("/")
 @login_required
 def index_worker():
@@ -93,8 +93,8 @@ def login():
         elif not flask.request.form.get("pass"):
             flask.flash("password not entered")
             return flask.redirect("/login")
-
         # Query database for username
+        dbs = sa.orm.Session(engine)
         rows = dbs.query(user).filter_by(name=flask.request.form.get("uid")).first()
         # print(rows.name)
         # print(rows.hash)
@@ -107,7 +107,7 @@ def login():
 
         # # Remember which user has logged in
         flask.session["user_id"] = rows.id
-
+        dbs.commit()
         # Redirect user to home page
         return flask.redirect("/")
 
@@ -119,9 +119,79 @@ def logout():
     flask.session["user_id"] = None
     return flask.redirect("/login")
 @app.route("/category", methods=["GET","POST"])
-def category():
+def cat():
     if flask.request.method == "POST":
+        if (not flask.request.form.get("name")) or (len(flask.request.form.get("name")) > 255):
+            flask.flash("wrong name")
+            return flask.redirect("/category")
+        elif len(flask.request.form.get("desc")) > 1000:
+            flask.flash("max amount of characters in description is 1000")
+            return flask.redirect("/category")
+        try:
+            dbs = sa.orm.Session(engine)
+            q = category(
+                name = flask.request.form.get("name"),
+                description = flask.request.form.get("desc")
+                )
+            dbs.add(q)
+            dbs.commit()
+        except:
+             flask.flash("error creating category")
+             return flask.render_template("index.html")
         flask.flash("category created")
         return flask.render_template("index.html")
     else:
         return flask.render_template("category.html")
+@app.route("/gtc", methods=["GET","POST"])
+def gtc():
+    if flask.request.method == "POST":
+        if not flask.request.form.get("name"):
+            flask.flash("name input blank")
+            return flask.redirect("/")
+        try:
+            dbs = sa.orm.Session(engine)
+            if flask.request.form.get("ean"):
+                ean = flask.request.form.get("ean")
+            else:
+                ean = "NULL"
+            if flask.request.form.get("size"):
+                size = flask.request.form.get("size")
+            else:
+                size = "NULL"
+            if flask.request.form.get("weight"):
+                weight = flask.request.form.get("weight")
+            else:
+                weight = "NULL"
+            if flask.request.form.get("pt"):
+                pt = flask.request.form.get("pt")
+            else:
+                pt = "NULL"
+            flask.request.form.getlist("cc")
+            q = good_type(
+                 name = flask.request.form.get("name"),
+                 ean = ean,
+                 size = size,
+                 weight = weight,
+                 package_type_gt = pt
+                 )
+            dbs.add(q)
+            dbs.commit()
+        except:
+            flask.flash("name input blank")
+            return flask.redirect("/")
+        flask.flash("good type created")
+        return flask.redirect("/")
+    else:
+        dbs = sa.orm.Session(engine)
+        types = dbs.scalars(sa.select(package_type))
+        listt = []
+        for type in types:
+            listt.append({'name': type.name, 'id': type.id})
+            # print(type.name)
+        listc = []
+        cats = dbs.scalars(sa.select(category))
+        for catly in cats:
+            listc.append({'name': catly.name, 'id': catly.id})
+        dbs.commit()
+        # print(list)
+        return flask.render_template("gtc.html", types=listt, cats=listc)

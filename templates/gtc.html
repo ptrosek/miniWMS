@@ -1,0 +1,81 @@
+{% extends "layout.html" %} {% block title %}create good type{% endblock %} {%
+block main %}
+<div class="mb-3 mx-auto w-75">
+  <form action="/gtc" method="post" class="mb-3">
+    <div class="mb-3">
+      <label for="name" class="form-label">name*</label>
+      <input
+        type="text"
+        class="form-control mx-auto w-100"
+        name="name"
+        id="name"
+        aria-describedby="helpId"
+        placeholder="name"
+        maxlength="255"
+        required
+      />
+    </div>
+    <div class="mb-3 mx-auto w-auto">
+      <div class="mb-3">
+        <label for="ean" class="form-label">ean</label>
+        <input
+          type="number"
+          class="form-control"
+          name="ean"
+          id="ean"
+          aria-describedby="helpId"
+          placeholder="ean"
+        />
+      </div>
+    </div>
+    <div class="mb-3 mx-auto w-auto">
+        <div class="mb-3">
+          <label for="size" class="form-label">size</label>
+          <input
+            type="text"
+            class="form-control"
+            name="size"
+            id="size"
+            aria-describedby="helpId"
+            placeholder="size(cm X cm X cm)"
+          />
+        </div>
+      </div>
+      <div class="mb-3 mx-auto w-auto">
+        <div class="mb-3">
+          <label for="weight" class="form-label">weight</label>
+          <input
+            type="text"
+            class="form-control"
+            name="weight"
+            id="weight"
+            aria-describedby="helpId"
+            placeholder="weight(kg)"
+          />
+        </div>
+      </div>
+      <div class="mb-3 mx-auto w-auto">
+        <div class="mb-3">
+          <label for="pt" class="form-label">package type</label>
+          <select class="form-select" name="pt" id="pt">
+            <option value="None">...</option>
+            {% for type in types %}
+            <option value="{{ type['id'] }}">{{ type["id"] }}-{{ type["name"] }}</option>
+            {% endfor %}
+          </select>
+        </div>
+      </div>
+      <div class="mb-3 mx-auto w-auto">
+        <div class="mb-3">
+          <label for="cc" class="form-label">category*</label>
+          <select class="form-select" name="cc" id="cc" multiple required>
+            {% for cat in cats %}
+            <option value="{{ cat['id'] }}">{{ cat["id"] }}-{{ cat["name"] }}</option>
+            {% endfor %}
+          </select>
+        </div>
+      </div>
+    <button type="submit" class="btn btn-primary">Submit</button>
+  </form>
+</div>
+{% endblock %}

@@ -1,24 +1,25 @@
 {% extends "layout.html" %} {% block title %}create category{% endblock %} {%
 block main %}
-<div class="mb-3">
+<div class="mb-3 mx-auto w-75">
   <form action="/category" method="post" class="mb-3">
     <div class="mb-3">
-      <label for="name" class="form-label"></label>
+      <label for="name" class="form-label">name*</label>
       <input
         type="text"
-        class="form-control"
+        class="form-control mx-auto w-100"
         name="name"
         id="name"
         aria-describedby="helpId"
         placeholder="name"
         maxlength="255"
+        required
       />
     </div>
-    <div class="mb-3">
-      <label for="desc" class="form-label"></label>
+    <div class="mb-3 mx-auto w-auto">
+      <label for="desc" class="form-label">description</label>
       <textarea
-        class="form-control"
-        name="desc"
+        class="form-control mx-auto w-100"
+        name="desc"x
         id="desc"
         rows="3"
         maxlength="1000"
