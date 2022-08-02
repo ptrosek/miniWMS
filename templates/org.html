@@ -1,0 +1,58 @@
+{% extends "layout.html" %} {% block title %}create a new outside org{% endblock
+%} {% block main %}
+<div class="mb-3 mx-auto w-75 text-start">
+  <form action="/org" method="post" class="mb-3">
+    <div class="mb-3 form-floating">
+      <input
+        type="text"
+        class="form-control"
+        name="name"
+        id="name"
+        aria-describedby="helpId"
+        placeholder="name"
+        maxlength="255"
+        required
+      />
+      <label for="name" class="form-label">name*</label>
+    </div>
+    <div class="mb-3 form-floating">
+      <input
+        type="email"
+        class="form-control"
+        name="mail"
+        id="mail"
+        aria-describedby="emailHelpId"
+        placeholder="smth@company.com"
+        maxlength="255"
+        required
+      />
+      <label for="mail" class="form-label">email*</label>
+    </div>
+    <div class="form-floating mb-3">
+      <input
+        type="text"
+        class="form-control"
+        name="bi"
+        id="bi"
+        placeholder="bi"
+        maxlength="255"
+      />
+      <label for="bi">bank info</label>
+    </div>
+    <div class="form-floating mb-3 block-inline">
+      <input
+        type="text"
+        class="form-control"
+        name="address"
+        id="address"
+        placeholder="sda"
+        maxlength="255"
+      />
+      <label for="address">address</label>
+    </div>
+    <div class="text-center">
+      <button type="submit" class="btn btn-primary">Submit</button>
+    </div>
+  </form>
+</div>
+{% endblock main %}

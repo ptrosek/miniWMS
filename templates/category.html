@@ -1,9 +1,8 @@
 {% extends "layout.html" %} {% block title %}create category{% endblock %} {%
 block main %}
-<div class="mb-3 mx-auto w-75">
+<div class="mb-3 mx-auto w-75 text-start">
   <form action="/category" method="post" class="mb-3">
-    <div class="mb-3">
-      <label for="name" class="form-label">name*</label>
+    <div class="mb-3 form-floating">
       <input
         type="text"
         class="form-control mx-auto w-100"
@@ -14,9 +13,9 @@ block main %}
         maxlength="255"
         required
       />
+      <label for="name" class="form-label">name*</label>
     </div>
-    <div class="mb-3 mx-auto w-auto">
-      <label for="desc" class="form-label">description</label>
+    <div class="mb-3 mx-auto w-auto form-floating">
       <textarea
         class="form-control mx-auto w-100"
         name="desc"x
@@ -25,8 +24,11 @@ block main %}
         maxlength="1000"
         placeholder="description"
       ></textarea>
+      <label for="desc" class="form-label">description</label>
     </div>
+    <div class="text-center">
     <button type="submit" class="btn btn-primary">Submit</button>
+    </div>
   </form>
 </div>
 {% endblock %}
