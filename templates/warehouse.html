@@ -1,0 +1,107 @@
+{% extends 'layout.html' %} {% block main %}
+<div class="mb-3 mx-auto w-75 text-start">
+  <form action="/warehouse" method="post" class="mb-3">
+    <div class="form-floating mb-3">
+      <input
+        type="text"
+        class="form-control"
+        name="name"
+        id="name"
+        placeholder="sa"
+        required
+        maxlength="255"
+      />
+      <label for="name">name</label>
+    </div>
+    <div class="form-floating mb-3">
+      <input
+        type="text"
+        class="form-control"
+        name="address"
+        id="address"
+        placeholder="sa"
+        maxlength="255"
+      />
+      <label for="address">address</label>
+    </div>
+    <div class="form-floating mb-3">
+      <input
+        type="text"
+        class="form-control"
+        name="city"
+        id="city"
+        placeholder="as"
+        maxlength="255"
+      />
+      <label for="city">city</label>
+    </div>
+    <div class="form-floating mb-3">
+      <input
+        type="text"
+        class="form-control"
+        name="state"
+        id="state"
+        placeholder="as"
+        maxlength="255"
+      />
+      <label for="state">state</label>
+    </div>
+    <div class="form-floating mb-3">
+      <input
+        type="text"
+        class="form-control"
+        name="country"
+        id="country"
+        placeholder="as"
+        maxlength="255"
+      />
+      <label for="country">country</label>
+    </div>
+    <div class="form-floating mb-3">
+      <input
+        type="text"
+        class="form-control"
+        name="size"
+        id="size"
+        placeholder="as"
+        maxlength="255"
+      />
+      <label for="country">size</label>
+      <div class="mb-3">
+        <label for="cc" class="form-label">category (optional)</label>
+        <select class="form-select" name="cc" id="cc" multiple>
+          {% for cat in cats %}
+          <option value="{{ cat['id'] }}">
+            {{ cat["id"] }}-{{ cat["name"] }}
+          </option>
+          {% endfor %}
+        </select>
+    </div>
+    <div class="mb-3">
+      <label for="desc" class="form-label">description</label>
+      <textarea class="form-control" name="desc" id="desc" rows="5" maxlength="1000"></textarea>
+    </div>
+    <!--  -->
+    <div id="zones">
+    <!--  -->
+    </div>
+    <div class="text-center">
+      <button type="submit" class="btn btn-primary">Submit</button>
+    </div>
+  </form>
+</div>
+<script>
+  do {
+    var zones = Number(prompt("number of zones(at least one)"));
+    // console.log(zones);
+  } while (zones < 1 || isNaN(zones));
+  for(let i = 0; i < zones; i++){
+    var div = document.createElement("div");
+    div.innerHTML = '<hr><h2>ZONE nr.'+i+'</h2><div class="form-floating mb-3"><input type="text"class="form-control" name="name'+i+'" id="name'+i+'" maxlength="45"/><label for="name'+i+'">zone name</label></div><div class="form-floating mb-3"><input type="number" class="form-control" name="rows'+i+'" id="rows'+i+'" required min="1" max="1000"/><label for="rows'+i+'">rows</label></div><div class="form-floating mb-3"><input type="number" class="form-control" name="columns'+i+'" id="columns'+i+'" min="1"max="1000" required/><label for="columns'+i+'"">columns</label></div><div class="form-floating mb-3"> <input type="number" class="form-control" name="cells'+i+'" id="cells'+i+'" min="1" max="1000"/><label for="cells'+i+'">height</label></div>';
+    document.getElementById("zones").appendChild(div);
+  }
+    var help = document.createElement("div");
+    help.innerHTML = '<input type="number" name="num" id="num" hidden value="'+zones+'">';
+    document.getElementById("zones").appendChild(help);
+</script>
+{% endblock main %}

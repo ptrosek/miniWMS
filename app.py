@@ -210,20 +210,24 @@ def gtc():
         flask.flash("good type created")
         return flask.redirect("/")
     else:
-        # get data from the db saved as a list to make it iterable in jinjja and viewed as select
-        dbs.begin()
-        types = dbs.scalars(sa.select(package_type))
-        listt = []
-        for type in types:
-            listt.append({'name': type.name, 'id': type.id})
-            # print(type.name)
-        listc = []
-        cats = dbs.scalars(sa.select(category))
-        for catly in cats:
-            listc.append({'name': catly.name, 'id': catly.id})
-        dbs.commit()
-        # print(list)
-        return flask.render_template("gtc.html", types=listt, cats=listc)
+        try:
+            # get data from the db saved as a list to make it iterable in jinjja and viewed as select
+            dbs.begin()
+            types = dbs.scalars(sa.select(package_type))
+            listt = []
+            for type in types:
+                listt.append({'name': type.name, 'id': type.id})
+                # print(type.name)
+            listc = []
+            cats = dbs.scalars(sa.select(category))
+            for catly in cats:
+                listc.append({'name': catly.name, 'id': catly.id})
+            dbs.commit()
+            # print(list)
+            return flask.render_template("gtc.html", types=listt, cats=listc)
+        except:
+            flask.flash("error rendering webiste")
+            return flask.redirect('/')
 @app.route("/org",methods=["GET", "POST"])
 @login_required
 def org():
@@ -262,3 +266,106 @@ def org():
         return flask.redirect("/")
     else:
         return flask.render_template("org.html")
+@app.route("/warehouse",methods=["GET", "POST"])
+@login_required
+def war():
+    if flask.request.method == "POST":
+        if not flask.request.form.get("name"):
+            flask.flash("name not inputed")
+            return flask.redirect("/org")
+        name = flask.request.form.get("name")
+        if not flask.request.form.get("address"):
+            ads = sa.sql.null()
+        else:
+            ads = flask.request.form.get("address")
+        if not flask.request.form.get("city"):
+            city = sa.sql.null()
+        else:
+            city = flask.request.form.get("city")
+        if not flask.request.form.get("state"):
+            state = sa.sql.null()
+        else:
+            state = flask.request.form.get("state")
+        if not flask.request.form.get("country"):
+            country = sa.sql.null()
+        else:
+            country = flask.request.form.get("country")
+        if not flask.request.form.get("desc"):
+            desc = sa.sql.null()
+        else:
+            desc = flask.request.form.get("desc")
+        if not flask.request.form.get("size"):
+            size = sa.sql.null()
+        else:
+            size = flask.request.form.get("size")
+        try:
+            dbs.begin()
+            ww = warehouse(
+                name = name,
+                addres =  ads,
+                city = city,
+                state = state,
+                country = country,
+                size = size,
+                description = desc
+            )
+            dbs.add(ww)
+            dbs.flush()
+            if flask.request.form.getlist("cc"):
+                for cat in flask.request.form.getlist("cc"):
+                    wp = warehouse__category(
+                        idwarehouse = ww.id,
+                        idcategory = cat
+                    )
+                    dbs.add(wp)
+            for i in range(int(flask.request.form.get("num"))):
+                if not flask.request.form.get("name{}".format(i)):
+                    zn = sa.sql.null()
+                else:
+                    zn = flask.request.form.get("name{}".format(i))
+                zr = int(flask.request.form.get("rows{}".format(i)))
+                zc = int(flask.request.form.get("columns{}".format(i)))
+                if not flask.request.form.get("cells{}".format(i)):
+                    hh = None
+                    zh = sa.sql.null()
+                else:
+                    hh = 1
+                    zh = int(flask.request.form.get("cells{}".format(i)))
+                for r in range(zr):
+                    for c in range(zc):
+                        if hh == 1:
+                            for h in range(zh):
+                                q = position(
+                                    row = r,
+                                    column = c,
+                                    cell = h,
+                                    warehouse_pos = ww.id,
+                                    zone = zn
+                                )
+                                dbs.add(q)
+                        else:
+                                q = position(
+                                    row = r,
+                                    column = c,
+                                    warehouse_pos = ww.id,
+                                    zone = zn
+                                )
+                                dbs.add(q)
+            dbs.commit()
+            flask.flash("warehouse succesfully cretated")
+            return flask.redirect("/")
+        except:
+            flask.flash("error in database connection")
+            return flask.redirect("/")
+    else:
+        try:
+            listc = []
+            dbs.begin()
+            cats = dbs.scalars(sa.select(category))
+            for catly in cats:
+                listc.append({'name': catly.name, 'id': catly.id})
+            dbs.commit()
+            return flask.render_template("warehouse.html",cats = listc)
+        except:
+            flask.flash("error rendering webiste")
+            return flask.redirect('/')
