@@ -80,7 +80,12 @@ def create_admin():
     dbs.commit()
     return
 # create_admin()
-
+def operation_log(ot):
+    o = operation(
+        ops_type = ot,
+        user_executing = flask.session["user_id"]
+    )
+    return o
 # clearing logged in people
 @app.route("/")
 @login_required
@@ -117,6 +122,7 @@ def login():
 
         # # Remember which user has logged in
         flask.session["user_id"] = rows.id
+        dbs.add(operation_log(1))
         dbs.commit()
         # Redirect user to home page
         return flask.redirect("/")
@@ -127,6 +133,9 @@ def login():
 @app.route('/logout')
 def logout():
     # set the user id to none making login_required return false
+    dbs.begin()
+    dbs.add(operation_log(2))
+    dbs.commit()
     flask.session["user_id"] = None
     return flask.redirect("/login")
 @app.route("/category", methods=["GET","POST"])
@@ -148,6 +157,7 @@ def cat():
                 description = flask.request.form.get("desc")
                 )
             dbs.add(q)
+            dbs.add(operation_log(4))
             dbs.commit()
         except:
              flask.flash("error creating category")
@@ -203,6 +213,7 @@ def gtc():
                     )
                     dbs.add(p)
                     # print(p.type_id)
+            dbs.add(operation_log(4))
             dbs.commit()
         except:
             flask.flash("error in database")
@@ -258,6 +269,7 @@ def org():
                 addres = adr
             )
             dbs.add(q)
+            dbs.add(operation_log(4))
             dbs.commit()
         except:
             flask.flash("database error")
@@ -351,6 +363,7 @@ def war():
                                     zone = zn
                                 )
                                 dbs.add(q)
+            dbs.add(operation_log(4))
             dbs.commit()
             flask.flash("warehouse succesfully cretated")
             return flask.redirect("/")
@@ -369,3 +382,84 @@ def war():
         except:
             flask.flash("error rendering webiste")
             return flask.redirect('/')
+@app.route("/receipt",methods=["GET", "POST"])
+@login_required
+def rec():
+    if flask.request.method == "POST":
+        supp = flask.request.form.get("supp")
+        usera =flask.session["user_id"]
+        if flask.request.form.get("uu") == "any":
+            usere = sa.sql.null()
+        else:
+            usere = flask.request.form.get("uu")
+        print(flask.request.form.get("arrpos"))
+        pos = int(flask.request.form.get("arrpos"))
+        print(pos)
+        arrival = flask.request.form.get("arrival")
+        if not flask.request.form.get("comment"):
+            com = sa.sql.null()
+        else:
+            com = flask.request.form.get("comment")
+        try:
+            dbs.begin()
+            q = receipt(
+                supplier = supp,
+                user_executing = usere,
+                user_approving = usera,
+                position_re = pos,
+                arrival = arrival,
+                comment = com
+            )
+            dbs.add(q)
+            op = operation_log(3)
+            dbs.add(op)
+            dbs.flush()
+            for i in range(int(flask.request.form.get("num"))):
+                gt_type = flask.request.form.get("gtt{}".format(i))
+                # print(gt_type)
+                gt_amount = int(flask.request.form.get("gtn{}".format(i)))
+                if not flask.request.form.get("gtc{}".format(i)):
+                    gt_comment = sa.sql.null()
+                else:
+                    gt_comment = flask.request.form.get("gtc{}".format(i))
+                for j in range(gt_amount):
+                    k = record(
+                        comment = gt_comment,
+                        type = gt_type,
+                        receipt_rec = q.id,
+                        current_position = pos,
+                        last_update = q.time_info
+                    )
+                    dbs.add(k)
+                    dbs.flush()
+                    l = record_ops(
+                        record_id = k.id,
+                        ops_id = op.id
+                    )
+                    dbs.add(l)
+                dbs.commit()
+            flask.flash("reciept created")
+            return flask.redirect("/")
+        except:
+            flask.flash("error creating receipt")
+            return flask.redirect("/")
+    else:
+        dbs.begin()
+        list_s = []
+        suppliers = dbs.scalars(sa.select(outside_org))
+        for sup in suppliers:
+            list_s.append({'name': sup.name, 'id': sup.id})
+        list_u = []
+        users = dbs.scalars(sa.select(user))
+        for u in users:
+            list_u.append({'id': u.id, 'name': u.name, 'first_name': u.first_name, 'last_name': u.last_name})
+        list_p = []
+        positions = dbs.scalars(sa.select(position))
+        for pos in positions:
+            list_p.append({'id': pos.id, 'row': pos.row, 'column': pos.column, 'cell': pos.cell, 'zone': pos.zone, 'warehouse_pos': pos.warehouse_pos})
+        list_g = []
+        goods = dbs.scalars(sa.select(good_type))
+        for good in goods:
+            list_g.append({'id': good.id, 'name':good.name, 'ean': good.ean})
+        dbs.commit()
+        return flask.render_template("receipt.html", suppliers = list_s, users = list_u, positions = list_p, goods = list_g)

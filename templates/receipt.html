@@ -1,0 +1,129 @@
+{% extends 'layout.html' %} {% block main %}
+<form action="/receipt" method="post" class="mb-3 mx-auto w-50 text-start">
+  <h2>receipt info</h2>
+  <div>
+    <label for="supp" class="form-label">supplier</label>
+    <input
+      class="form-control"
+      list="supp_l"
+      id="supp"
+      name="supp"
+      placeholder="Type to search..."
+      required
+    />
+    <datalist id="supp_l">
+      {% for sup in suppliers %}
+      <option value="{{ sup['id'] }}">{{ sup['name'] }}</option>
+      {% endfor %}
+    </datalist>
+  </div>
+  <div>
+    <label for="uu" class="form-label"
+      >select user to execute or select any to let user assign themselves</label
+    >
+    <input
+      class="form-control"
+      list="uu_l"
+      id="uu"
+      name="uu"
+      placeholder="Type to search..."
+      required
+    />
+    <datalist id="uu_l">
+      <option value="any"></option>
+      {% for user in users %}
+      <option value="{{ user['id'] }}">
+        {{ user['name'] }}-{{ user['first_name'] }}-{{ user['last_name'] }}
+      </option>
+      {% endfor %}
+    </datalist>
+  </div>
+  <div>
+    <label for="arrpos" class="form-label">arrival position</label>
+    <input
+      class="form-control"
+      list="arrpos_l"
+      id="arrpos"
+      name="arrpos"
+      placeholder="Type to search..."
+      required
+    />
+    <datalist id="arrpos_l">
+      {% for pos in positions %}
+      <option value="{{ pos['id'] }}">
+        {{ pos['row'] }}-{{ pos['column'] }}-{{ pos['cell'] }}-{{ pos['zone']
+        }}-{{ pos['warehouse_pos'] }}
+      </option>
+      {% endfor %}
+    </datalist>
+  </div>
+  <div>
+    <label for="arrival">arrival</label>
+    <input
+      class="mb-3 form-control"
+      type="datetime-local"
+      name="arrival"
+      id="arrival"
+      max="9999-12-31T23:59"
+      required
+    />
+  </div>
+  <div class="mb-3">
+    <label for="com" class="form-label">comment on receipt</label>
+    <textarea
+      class="form-control"
+      name="com"
+      id="com"
+      rows="3"
+      maxlength="1000"
+    ></textarea>
+  </div>
+  <datalist id="gt_l">
+    {% for good in goods %}
+    <option value="{{ good['id'] }}">
+      {{ good['name'] }}-{{ good['ean'] }}
+    </option>
+    {% endfor %}
+  </datalist>
+  <div id="gts"></div>
+  <div class="text-center">
+    <button type="submit" class="btn btn-primary">Submit</button>
+  </div>
+</form>
+<script>
+  do {
+    var gt = Number(prompt("number of product types(at least one)"));
+    // console.log(zones);
+  } while (gt < 1 || isNaN(gt));
+  for (let i = 0; i < gt; i++) {
+    var div = document.createElement("div");
+    div.innerHTML =
+      "<h2>Good type nr." +
+      i +
+      '</h2><div><hr><div><label for="gtt' +
+      i +
+      '" class="form-label">type of goods</label><input class="form-control" list="gt_l" id="gtt' +
+      i +
+      '" name="gtt' +
+      i +
+      '" placeholder="Type to search..." required></div><div class="mb-3"><label for="gtn' +
+      i +
+      '" class="form-label">amount of goods of this types</label><input type="number" class="form-control" name="gtn' +
+      i +
+      '" id="gtn' +
+      i +
+      '" aria-describedby="helpId" placeholder="number of goods" min="1" required></div><div class="mb-3"><label for="gtc' +
+      i +
+      '" class="form-label">comment on record</label><textarea class="form-control" name="gtc' +
+      i +
+      '" id="gtc' +
+      i +
+      '" rows="3" maxlength="1000"></textarea></div></div>';
+    document.getElementById("gts").appendChild(div);
+  }
+  var help = document.createElement("div");
+  help.innerHTML =
+    '<input type="number" name="num" id="num" hidden value="' + gt + '">';
+  document.getElementById("gts").appendChild(help);
+</script>
+{% endblock main %}

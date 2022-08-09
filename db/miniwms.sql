@@ -83,7 +83,7 @@ DROP TABLE IF EXISTS `issue`;
 CREATE TABLE `issue` (
   `id` int NOT NULL AUTO_INCREMENT,
   `customer` int DEFAULT NULL,
-  `user_executing` int NOT NULL,
+  `user_executing` int DEFAULT NULL,
   `user_approving` int DEFAULT NULL,
   `position_is` int DEFAULT NULL,
   `time_info` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
