@@ -5,6 +5,7 @@ from werkzeug.security import check_password_hash, generate_password_hash
 import sqlalchemy as sa
 from sqlalchemy.ext.automap import automap_base
 from helpers import login_required
+import blabel
 
 app = flask.Flask(__name__)
 
@@ -281,6 +282,7 @@ def org():
 @app.route("/warehouse",methods=["GET", "POST"])
 @login_required
 def war():
+    # getting data from the form and inputing to db
     if flask.request.method == "POST":
         if not flask.request.form.get("name"):
             flask.flash("name not inputed")
@@ -322,7 +324,9 @@ def war():
                 description = desc
             )
             dbs.add(ww)
+            # flushing the db to get warehouse id
             dbs.flush()
+            # creating all of the possible positions within range
             if flask.request.form.getlist("cc"):
                 for cat in flask.request.form.getlist("cc"):
                     wp = warehouse__category(
@@ -330,7 +334,11 @@ def war():
                         idcategory = cat
                     )
                     dbs.add(wp)
-            for i in range(int(flask.request.form.get("num"))):
+            num = flask.request.form.get("num")
+            if not num:
+                flask.flash("error handling the form. contact your system administrator")
+                return flask.redirect("/issue")
+            for i in range(int(num)):
                 if not flask.request.form.get("name{}".format(i)):
                     zn = sa.sql.null()
                 else:
@@ -371,6 +379,7 @@ def war():
             flask.flash("error in database connection")
             return flask.redirect("/")
     else:
+        # get all of the categories from the database
         try:
             listc = []
             dbs.begin()
@@ -385,6 +394,7 @@ def war():
 @app.route("/receipt",methods=["GET", "POST"])
 @login_required
 def rec():
+    # same as before
     if flask.request.method == "POST":
         supp = flask.request.form.get("supp")
         usera =flask.session["user_id"]
@@ -392,9 +402,9 @@ def rec():
             usere = sa.sql.null()
         else:
             usere = flask.request.form.get("uu")
-        print(flask.request.form.get("arrpos"))
+        # print(flask.request.form.get("arrpos"))
         pos = int(flask.request.form.get("arrpos"))
-        print(pos)
+        # print(pos)
         arrival = flask.request.form.get("arrival")
         if not flask.request.form.get("comment"):
             com = sa.sql.null()
@@ -414,7 +424,12 @@ def rec():
             op = operation_log(3)
             dbs.add(op)
             dbs.flush()
-            for i in range(int(flask.request.form.get("num"))):
+            # creating records and operations for goods in the receipt
+            num = flask.request.form.get("num")
+            if not num:
+                flask.flash("error handling the form. contact your system administrator")
+                return flask.redirect("/issue")
+            for i in range(int(num)):
                 gt_type = flask.request.form.get("gtt{}".format(i))
                 # print(gt_type)
                 gt_amount = int(flask.request.form.get("gtn{}".format(i)))
@@ -444,22 +459,108 @@ def rec():
             flask.flash("error creating receipt")
             return flask.redirect("/")
     else:
+        try:
+            dbs.begin()
+            list_s = []
+            suppliers = dbs.scalars(sa.select(outside_org))
+            for sup in suppliers:
+                list_s.append({'name': sup.name, 'id': sup.id})
+            list_u = []
+            users = dbs.scalars(sa.select(user))
+            for u in users:
+                list_u.append({'id': u.id, 'name': u.name, 'first_name': u.first_name, 'last_name': u.last_name})
+            list_p = []
+            positions = dbs.scalars(sa.select(position))
+            for pos in positions:
+                list_p.append({'id': pos.id, 'row': pos.row, 'column': pos.column, 'cell': pos.cell, 'zone': pos.zone, 'warehouse_pos': pos.warehouse_pos})
+            list_g = []
+            goods = dbs.scalars(sa.select(good_type))
+            for good in goods:
+                list_g.append({'id': good.id, 'name':good.name, 'ean': good.ean})
+            dbs.commit()
+            return flask.render_template("receipt.html", suppliers = list_s, users = list_u, positions = list_p, goods = list_g)
+        except:
+            flask.flash("cannot load website. contact your system administrator")
+            return flask.redirect("/")
+@app.route("/issue",methods=["GET","POST"])
+@login_required
+def iss():
+    if flask.request.method == "POST":
+        supp = flask.request.form.get("supp")
+        usera =flask.session["user_id"]
+        if flask.request.form.get("uu") == "any":
+            usere = sa.sql.null()
+        else:
+            usere = flask.request.form.get("uu")
+        # print(flask.request.form.get("deppos"))
+        pos = int(flask.request.form.get("deppos"))
+        # print(pos)
+        deps = flask.request.form.get("departure")
+        if not flask.request.form.get("comment"):
+            com = sa.sql.null()
+        else:
+            com = flask.request.form.get("comment")
+        num = flask.request.form.get("num")
+        if not num:
+            flask.flash("error handling the form. contact your system administrator")
+            return flask.redirect("/issue")
         dbs.begin()
-        list_s = []
-        suppliers = dbs.scalars(sa.select(outside_org))
-        for sup in suppliers:
-            list_s.append({'name': sup.name, 'id': sup.id})
-        list_u = []
-        users = dbs.scalars(sa.select(user))
-        for u in users:
-            list_u.append({'id': u.id, 'name': u.name, 'first_name': u.first_name, 'last_name': u.last_name})
-        list_p = []
-        positions = dbs.scalars(sa.select(position))
-        for pos in positions:
-            list_p.append({'id': pos.id, 'row': pos.row, 'column': pos.column, 'cell': pos.cell, 'zone': pos.zone, 'warehouse_pos': pos.warehouse_pos})
-        list_g = []
-        goods = dbs.scalars(sa.select(good_type))
-        for good in goods:
-            list_g.append({'id': good.id, 'name':good.name, 'ean': good.ean})
+        q = issue(
+            customer = supp,
+            user_executing = usere,
+            user_approving = usera,
+            position_is = pos,
+            comment = com,
+            departure = deps
+        )
+        dbs.add(q)
+        op = operation_log(6)
+        dbs.add(op)
+        dbs.flush()
+        for i in range(int(num)):
+            gtt = flask.request.form.get("gtt{}".format(i))
+            gtn = int(flask.request.form.get("gtn{}".format(i)))
+            recs = dbs.query(record).where(sa.and_(record.issue_rec == None, record.type == gtt))
+            amount_of_recs = recs.count()
+            if gtn > amount_of_recs:
+                dbs.rollback()
+                flask.flash("not enough of goods of said amount in warehouses")
+                return flask.redirect("/")
+            for idx, rec in enumerate(recs):
+                if idx == gtn:
+                    break
+                stmt = sa.update(record).where(record.id == rec.id).values(issue_rec = q.id)
+                dbs.execute(stmt)
+                k = record_ops(
+                    record_id = rec.id,
+                    ops_id = op.id
+                )
+                dbs.add(k)
         dbs.commit()
-        return flask.render_template("receipt.html", suppliers = list_s, users = list_u, positions = list_p, goods = list_g)
+        flask.flash("stock issue created")
+        return flask.redirect("/")
+    else:
+        try:
+            dbs.begin()
+            list_s = []
+            suppliers = dbs.scalars(sa.select(outside_org))
+            for sup in suppliers:
+                list_s.append({'name': sup.name, 'id': sup.id})
+            list_u = []
+            users = dbs.scalars(sa.select(user))
+            for u in users:
+                list_u.append({'id': u.id, 'name': u.name, 'first_name': u.first_name, 'last_name': u.last_name})
+            list_p = []
+            positions = dbs.scalars(sa.select(position))
+            for pos in positions:
+                list_p.append({'id': pos.id, 'row': pos.row, 'column': pos.column, 'cell': pos.cell, 'zone': pos.zone, 'warehouse_pos': pos.warehouse_pos})
+            list_g = []
+            goods = dbs.query(good_type, sa.func.count(record.id)).join(record).where(record.issue_rec == None).group_by(record.type)
+            print(goods)
+            for good in goods:
+                list_g.append({'id': good.good_type.id, 'name':good.good_type.name, 'ean': good.good_type.ean, 'amount': good[1]})
+            dbs.commit()
+            return flask.render_template("issue.html",  suppliers = list_s, users = list_u, positions = list_p, goods = list_g)
+        except:
+            flask.flash("cannot load website. contact your system administrator")
+            return flask.redirect("/")
