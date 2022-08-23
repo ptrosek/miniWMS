@@ -1,0 +1,133 @@
+{% extends 'layout.html' %} {% block title %} move action creation {% endblock
+title %} {% block main %}
+<div class="mb-3 mx-auto w-50 text-start">
+  <form action="/move" method="post" class="mb-3">
+    <h2>create a move action</h2>
+    <div>
+      <label for="endpos" class="form-label">end position</label>
+      <input
+        class="form-control"
+        list="endpos_l"
+        id="endpos"
+        name="endpos"
+        placeholder="Type to search..."
+        required
+      />
+      <datalist id="endpos_l">
+        {% for pos in positions %}
+        <option value="{{ pos['id'] }}">
+          {{ pos['warehouse_pos'] }}-{{ pos['zone'] }}-{{ pos['row'] }}-{{
+          pos['column'] }}-{{ pos['cell'] }}
+        </option>
+        {% endfor %}
+      </datalist>
+    </div>
+    <div>
+      <label for="uu" class="form-label"
+        >select user to execute or select any to let user assign
+        themselves</label
+      >
+      <input
+        class="form-control"
+        list="uu_l"
+        id="uu"
+        name="uu"
+        placeholder="Type to search..."
+        required
+      />
+      <datalist id="uu_l">
+        <option value="any"></option>
+        {% for user in users %}
+        <option value="{{ user['id'] }}">
+          {{ user['name'] }}-{{ user['first_name'] }}-{{ user['last_name'] }}
+        </option>
+        {% endfor %}
+      </datalist>
+    </div>
+    <div>
+      <div class="mb-3">
+        <label for="comment" class="form-label">comment</label>
+        <textarea
+          class="form-control"
+          name="comment"
+          id="comment"
+          rows="3"
+        ></textarea>
+      </div>
+    </div>
+    <div>
+      <label for="records" class="form-label"
+        >type in a record and click add button to select if for move
+        action</label
+      >
+      <div class="d-flex">
+        <input
+          class="form-control"
+          list="records_l"
+          id="records"
+          name="records"
+          placeholder="Type to search..."
+        />
+        <datalist id="records_l">
+          {% for rec in record %}
+          <option value="{{ rec['id'] }}">
+            {{ rec['type'] }}-{{ rec['current_position'] }}
+          </option>
+          {% endfor %}
+        </datalist>
+        <a
+          name=""
+          id=""
+          class="btn btn-primary"
+          role="button"
+          onclick="recAdd()"
+          >Add</a
+        >
+      </div>
+    </div>
+    <hr />
+    <div class="recs">
+      <div class="mb-3">
+        <label for="recon" class="form-label">records to move</label>
+        <select
+          multiple
+          class="form-select"
+          name="recon"
+          id="recon"
+          aria-label="records to move"
+          required
+        ></select>
+      </div>
+    </div>
+    <hr />
+    <div>
+      <input type="number" name="num" id="num" hidden value="0" />
+    </div>
+    <div class="text-center">
+      <button type="submit" class="btn btn-primary">Submit</button>
+    </div>
+  </form>
+</div>
+<script>
+  function recAdd() {
+    value = document.getElementById("records").value;
+    vs = [];
+    var nn = parseInt(document.getElementById("num").value, 10);
+    if (!value) {
+      return alert("type in a record to add");
+    }
+    for (var i = 0; i < nn; i++) {
+      if (value == document.getElementById("recon").children[i].value) {
+        return alert("record already selected");
+      }
+    }
+    var oo = document.createElement("option");
+    oo.value = value;
+    oo.innerText = value;
+    oo.selected = true;
+    document.getElementById("num").value = nn + 1;
+    document.getElementById("recon").appendChild(oo);
+    return;
+  }
+</script>
+{% endblock main %}

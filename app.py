@@ -36,7 +36,7 @@ except:
 #           conn = engine.connect()
 #           print(f"\nTable {t.name}:")
 #           for c in t.columns:
-            #   print(f"{c} ({c.type})")
+#               print(f"{c} ({c.type})")
 #           conn.close()
 
 # setting allisases for tables
@@ -57,7 +57,8 @@ receipt = Base.classes.receipt
 type__category = Base.classes.type__category
 record = Base.classes.record
 record_ops = Base.classes.record_ops
-
+move = Base.classes.move
+move__record = Base.classes.move__record
 # test query
 # conn = engine.connect()
 # t = dbs.query(good_type).all()
@@ -495,7 +496,7 @@ def iss():
         # print(flask.request.form.get("deppos"))
         pos = int(flask.request.form.get("deppos"))
         # print(pos)
-        deps = flask.request.form.get("departure")
+        deps = flask.request.form.get("deptime")
         if not flask.request.form.get("comment"):
             com = sa.sql.null()
         else:
@@ -504,41 +505,45 @@ def iss():
         if not num:
             flask.flash("error handling the form. contact your system administrator")
             return flask.redirect("/issue")
-        dbs.begin()
-        q = issue(
-            customer = supp,
-            user_executing = usere,
-            user_approving = usera,
-            position_is = pos,
-            comment = com,
-            departure = deps
-        )
-        dbs.add(q)
-        op = operation_log(6)
-        dbs.add(op)
-        dbs.flush()
-        for i in range(int(num)):
-            gtt = flask.request.form.get("gtt{}".format(i))
-            gtn = int(flask.request.form.get("gtn{}".format(i)))
-            recs = dbs.query(record).where(sa.and_(record.issue_rec == None, record.type == gtt))
-            amount_of_recs = recs.count()
-            if gtn > amount_of_recs:
-                dbs.rollback()
-                flask.flash("not enough of goods of said amount in warehouses")
-                return flask.redirect("/")
-            for idx, rec in enumerate(recs):
-                if idx == gtn:
-                    break
-                stmt = sa.update(record).where(record.id == rec.id).values(issue_rec = q.id)
-                dbs.execute(stmt)
-                k = record_ops(
-                    record_id = rec.id,
-                    ops_id = op.id
-                )
-                dbs.add(k)
-        dbs.commit()
-        flask.flash("stock issue created")
-        return flask.redirect("/")
+        try:
+            dbs.begin()
+            q = issue(
+                customer = supp,
+                user_executing = usere,
+                user_approving = usera,
+                position_is = pos,
+                comment = com,
+                departure = deps
+            )
+            dbs.add(q)
+            op = operation_log(6)
+            dbs.add(op)
+            dbs.flush()
+            for i in range(int(num)):
+                gtt = flask.request.form.get("gtt{}".format(i))
+                gtn = int(flask.request.form.get("gtn{}".format(i)))
+                recs = dbs.query(record).where(sa.and_(record.issue_rec == None, record.type == gtt))
+                amount_of_recs = recs.count()
+                if gtn > amount_of_recs:
+                    dbs.rollback()
+                    flask.flash("not enough of goods of said amount in warehouses")
+                    return flask.redirect("/")
+                for idx, rec in enumerate(recs):
+                    if idx == gtn:
+                        break
+                    stmt = sa.update(record).where(record.id == rec.id).values(issue_rec = q.id)
+                    dbs.execute(stmt)
+                    k = record_ops(
+                        record_id = rec.id,
+                        ops_id = op.id
+                    )
+                    dbs.add(k)
+            dbs.commit()
+            flask.flash("stock issue created")
+            return flask.redirect("/")
+        except:
+            flask.flash("error creating the issue. Contact your system administrator")
+            return flask.redirect("/")
     else:
         try:
             dbs.begin()
@@ -564,3 +569,106 @@ def iss():
         except:
             flask.flash("cannot load website. contact your system administrator")
             return flask.redirect("/")
+@app.route("/move", methods=["POST","GET"])
+@login_required
+def movcre():
+    if flask.request.method == "POST":
+        endpos = flask.request.form.get("endpos")
+        usera = flask.session["user_id"]
+        if flask.request.form.get("uu") == "any":
+            usere = sa.sql.null()
+        else:
+            usere = flask.request.form.get("uu")
+        if not flask.request.form.get("comment"):
+            com = sa.sql.null()
+        else:
+            com = flask.request.form.get("comment")
+        recs = flask.request.form.getlist("recon")
+        try:
+            dbs.begin()
+            q = move(
+                end_pos = endpos,
+                user_approving = usera,
+                comment = com,
+                user_executing = usere
+            )
+            dbs.add(q)
+            dbs.flush()
+            for rec in recs:
+                sp = dbs.scalar(sa.select(record.current_position).where(record.id == rec))
+                r = move__record(
+                    move_id = q.id,
+                    record_id = rec,
+                    start_pos = sp,
+                    end_pos = endpos,
+                )
+                dbs.add(r)
+            dbs.commit()
+            flask.flash("move action succesfuly created")
+            return flask.redirect("/")
+        except:
+            flask.flash("error while creating a move action")
+            return flask.redirect("/")
+    else:
+        try:
+            dbs.begin()
+            positions = dbs.scalars(sa.select(position))
+            list_p = []
+            for pos in positions:
+                list_p.append({'id': pos.id, 'row': pos.row, 'column': pos.column, 'cell': pos.cell, 'zone': pos.zone, 'warehouse_pos': pos.warehouse_pos})
+            records = dbs.scalars(sa.select(record))
+            list_r = []
+            for rec in records:
+                list_r.append({'id': rec.id, 'type': rec.type, 'current_position': rec.current_position})
+            users = dbs.scalars(sa.select(user))
+            list_u = []
+            for u in users:
+                list_u.append({'id': u.id, 'name': u.name, 'first_name': u.first_name, 'last_name': u.last_name})
+            dbs.commit()
+            return flask.render_template("move.html", positions = list_p, record = list_r, users = list_u)
+        except:
+            flask.flash("cannot load website. contact your system administrator")
+            return flask.redirect('/')
+@app.route("/lookup", methods=["GET","POST"])
+@login_required
+def loku():
+    if flask.request.method == "POST":
+        if not flask.request.form.get("idl"):
+            flask.flash("query not valid")
+            return flask.redirect("/")
+        que = flask.request.form.get("idl")
+        qq = que.split("-")
+        if not (qq[0] == "rec" or qq[0] == "iss" or qq[0] == "mov" or qq[0] == "pos" or qq[0] == "rec" or qq[0] == "typ" or qq[0] == "cus"):
+            flask.flash("prefix not valid")
+            return flask.redirect("/")
+        return flask.redirect("/lkres?t={}&id={}".format(qq[0],qq[1]))
+    return flask.render_template("lookup.html")
+@app.route("/lkres", methods = ["GET"])
+@login_required
+def lokres():
+    tt = flask.request.args.get("t")
+    ii = flask.request.args.get("id")
+    if tt == "rec":
+        try:
+            dbs.begin()
+            q = dbs.scalars(sa.select(record).where(record.id == ii)).first()
+            return flask.render_template("rec-res.html", rec = q), dbs.commit()
+        except:
+            flask.flash("cannot load lookup. check your id")
+            return flask.redirect("/")
+    if tt == "iss":
+        try:
+            dbs.begin()
+            q = dbs.scalars(sa.select(issue).where(issue.id == ii)).first()
+            return flask.render_template("iss-rec.html", iss = q), dbs.commit()
+        except:
+            flask.flash("cannot load lookup. check your id")
+            return flask.redirect("/")
+    return flask.redirect("/")
+@app.route("/test")
+def test():
+    label = blabel.LabelWriter("./templates/labels/label_move.html", default_stylesheets=("./static/label_a4.css",))
+    records = [
+        dict(sample_id="2137", sample_name = "lalala")
+    ]
+    return label.write_labels(records, target="test.pdf")

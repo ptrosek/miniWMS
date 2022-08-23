@@ -1,4 +1,5 @@
-{% extends 'layout.html' %} {% block main %}
+{% extends 'layout.html' %} {% block title %} receipt creation {% endblock title
+%} {% block main %}
 <form action="/receipt" method="post" class="mb-3 mx-auto w-50 text-start">
   <h2>receipt info</h2>
   <div>
@@ -51,8 +52,8 @@
     <datalist id="arrpos_l">
       {% for pos in positions %}
       <option value="{{ pos['id'] }}">
-        {{ pos['row'] }}-{{ pos['column'] }}-{{ pos['cell'] }}-{{ pos['zone']
-        }}-{{ pos['warehouse_pos'] }}
+        {{ pos['warehouse_pos'] }}-{{ pos['zone'] }}-{{ pos['row'] }}-{{
+        pos['column'] }}-{{ pos['cell'] }}
       </option>
       {% endfor %}
     </datalist>

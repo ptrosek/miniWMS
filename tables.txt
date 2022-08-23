@@ -46,10 +46,18 @@ warehouse.description (VARCHAR(1000))
 Table good_type:
 good_type.id (INTEGER)
 good_type.name (VARCHAR(255))
-good_type.ean (INTEGER)
+good_type.ean (BIGINT)
 good_type.size (VARCHAR(100))
 good_type.weight (VARCHAR(100))
 good_type.package_type_gt (INTEGER)
+
+Table operation:
+operation.id (INTEGER)
+operation.ops_type (INTEGER)
+operation.user_executing (INTEGER)
+operation.comment (VARCHAR(1000))
+operation.time (TIMESTAMP)
+operation.user_approving (INTEGER)
 
 Table position:
 position.id (INTEGER)
@@ -78,15 +86,16 @@ issue.position_is (INTEGER)
 issue.time_info (TIMESTAMP)
 issue.comment (VARCHAR(1000))
 issue.departure (DATETIME)
+issue.completed (TINYINT)
 
-Table operation:
-operation.id (INTEGER)
-operation.ops_type (INTEGER)
-operation.user_executing (INTEGER)
-operation.postition (INTEGER)
-operation.comment (VARCHAR(1000))
-operation.time (TIMESTAMP)
-operation.user_approving (INTEGER)
+Table move:
+move.id (INTEGER)
+move.end_pos (INTEGER)
+move.user_approving (INTEGER)
+move.time_info (TIMESTAMP)
+move.comment (VARCHAR(1000))
+move.user_executing (INTEGER)
+move.completed (TINYINT)
 
 Table receipt:
 receipt.id (INTEGER)
@@ -97,6 +106,7 @@ receipt.position_re (INTEGER)
 receipt.time_info (TIMESTAMP)
 receipt.comment (VARCHAR(1000))
 receipt.arrival (DATETIME)
+receipt.completed (TINYINT)
 
 Table type__category:
 type__category.id (INTEGER)
@@ -111,6 +121,13 @@ record.receipt_rec (INTEGER)
 record.issue_rec (INTEGER)
 record.current_position (INTEGER)
 record.last_update (TIMESTAMP)
+
+Table move__record:
+move__record.id (INTEGER)
+move__record.move_id (INTEGER)
+move__record.record_id (INTEGER)
+move__record.start_pos (INTEGER)
+move__record.end_pos (INTEGER)
 
 Table record_ops:
 record_ops.id (INTEGER)
