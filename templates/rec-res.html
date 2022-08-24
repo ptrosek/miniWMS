@@ -17,7 +17,7 @@
     <tr>
       <th>receipt</th>
       <td>
-        <a href="/lkres?t=typ&id={{ rec.receipt_rec }}"
+        <a href="/lkres?t=rei&id={{ rec.receipt_rec }}"
           >{{ rec.receipt_rec }}</a
         >
       </td>
@@ -25,13 +25,13 @@
     <tr>
       <th>issue</th>
       <td>
-        <a href="/lkres?t=typ&id={{ rec.issue_rec }}">{{ rec.issue_rec }}</a>
+        <a href="/lkres?t=iss&id={{ rec.issue_rec }}">{{ rec.issue_rec }}</a>
       </td>
     </tr>
     <tr>
       <th>current position</th>
       <td>
-        <a href="/lkres?t=typ&id={{ rec.current_position }}"
+        <a href="/lkres?t=pos&id={{ rec.current_position }}"
           >{{ rec.current_position }}</a
         >
       </td>
@@ -39,6 +39,13 @@
     <tr>
       <th>last update</th>
       <td>{{ rec.last_update }}</td>
+    </tr>
+    <tr>
+      <th>move actions on record</th>
+      <td>
+        {% for m in moves %}
+        <a href="/lkres?t=mov&id={{ m.id }}">{{ m.id }}</a>, {% endfor %}
+      </td>
     </tr>
   </table>
 </div>

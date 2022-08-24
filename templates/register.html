@@ -1,0 +1,93 @@
+{% extends 'layout.html' %} {% block title %} register a new user {% endblock
+title %} {% block main %}
+<div class="mb-3 mx-auto w-50 text-start">
+  <form action="/register" method="post" class="mb-3">
+    <div class="mb-3">
+      <label for="name" class="form-label">name/login</label>
+      <input
+        type="text"
+        class="form-control"
+        name="name"
+        id="name"
+        aria-describedby="helpId"
+        placeholder=""
+        required
+      />
+    </div>
+    <div class="mb-3">
+      <label for="password" class="form-label">password</label>
+      <input
+        type="password"
+        class="form-control"
+        name="password"
+        id="password"
+        aria-describedby="helpId"
+        placeholder=""
+        required
+      />
+    </div>
+    <div class="mb-3">
+      <label for="mail" class="form-label">e-mail</label>
+      <input
+        type="mail"
+        class="form-control"
+        name="mail"
+        id="mail"
+        aria-describedby="helpId"
+        placeholder=""
+      />
+    </div>
+    <div class="mb-3">
+      <label for="phone" class="form-label">phone</label>
+      <input
+        type="tel"
+        class="form-control"
+        name="phone"
+        id="phone"
+        aria-describedby="helpId"
+        placeholder=""
+      />
+    </div>
+    <div class="mb-3">
+      <label for="fname" class="form-label">first name</label>
+      <input
+        type="text"
+        class="form-control"
+        name="fname"
+        id="fname"
+        aria-describedby="helpId"
+        placeholder=""
+      />
+    </div>
+    <div class="mb-3">
+      <label for="lname" class="form-label">last name</label>
+      <input
+        type="text"
+        class="form-control"
+        name="lname"
+        id="lname"
+        aria-describedby="helpId"
+        placeholder=""
+      />
+    </div>
+    <div class="mb-3">
+      <label for="tt" class="form-label">user types</label>
+      <select
+        multiple
+        class="form-select"
+        name="tt"
+        id="tt"
+        aria-label="tt"
+        required
+      >
+        {% for type in types %}
+        <option value="{{ type.id }}">{{ type.id }}-{{ type.type }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="text-center">
+      <button type="submit" class="btn btn-primary">Submit</button>
+    </div>
+  </form>
+</div>
+{% endblock main %}

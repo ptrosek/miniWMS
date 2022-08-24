@@ -1,0 +1,50 @@
+{% extends 'layout.html' %} {% block title %} issue lookup {% endblock title %}
+{% block main %}
+<table class="table">
+  <tr>
+    <th>id</th>
+    <td>{{ iss.id }}</td>
+  </tr>
+  <tr>
+    <th>customer</th>
+    <td><a href="/lkres?t=cus&id={{ iss.customer }}">{{ iss.customer }}</a></td>
+  </tr>
+  <tr>
+    <th>user executing</th>
+    <td>{{ iss.user_executing }}</td>
+  </tr>
+  <tr>
+    <th>user approving</th>
+    <td>{{ iss.user_approving }}</td>
+  </tr>
+  <tr>
+    <th>position</th>
+    <td>
+      <a href="/lkres?t=pos&id={{ iss.position_is }}">{{ iss.position_is }}</a>
+    </td>
+  </tr>
+  <tr>
+    <th>time info</th>
+    <td>{{ iss.time_info }}</td>
+  </tr>
+  <tr>
+    <th>comment</th>
+    <td>{{ iss.comment }}</td>
+  </tr>
+  <tr>
+    <th>departure</th>
+    <td>{{ iss.departure }}</td>
+  </tr>
+  <tr>
+    <th>completed</th>
+    <td>{{ iss.completed }}</td>
+  </tr>
+  <tr>
+    <th>connected records</th>
+    <td>
+      {% for r in recs %}
+      <a href="/lkres?t=rec&id={{ r.id }}">{{ r.id }}</a>, {% endfor %}
+    </td>
+  </tr>
+</table>
+{% endblock main %}

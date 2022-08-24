@@ -638,7 +638,7 @@ def loku():
             return flask.redirect("/")
         que = flask.request.form.get("idl")
         qq = que.split("-")
-        if not (qq[0] == "rec" or qq[0] == "iss" or qq[0] == "mov" or qq[0] == "pos" or qq[0] == "rec" or qq[0] == "typ" or qq[0] == "cus"):
+        if not (qq[0] == "rec" or qq[0] == "iss" or qq[0] == "mov" or qq[0] == "pos" or qq[0] == "rei" or qq[0] == "typ"):
             flask.flash("prefix not valid")
             return flask.redirect("/")
         return flask.redirect("/lkres?t={}&id={}".format(qq[0],qq[1]))
@@ -652,19 +652,135 @@ def lokres():
         try:
             dbs.begin()
             q = dbs.scalars(sa.select(record).where(record.id == ii)).first()
-            return flask.render_template("rec-res.html", rec = q), dbs.commit()
+            if not q:
+                raise
+            r = dbs.scalars(sa.select(move).join(move__record).where(move__record.record_id == q.id))
+            return flask.render_template("rec-res.html", rec = q, moves = r), dbs.commit()
         except:
             flask.flash("cannot load lookup. check your id")
             return flask.redirect("/")
-    if tt == "iss":
+    elif tt == "iss":
         try:
             dbs.begin()
             q = dbs.scalars(sa.select(issue).where(issue.id == ii)).first()
-            return flask.render_template("iss-rec.html", iss = q), dbs.commit()
+            if not q:
+                raise
+            r = dbs.scalars(sa.select(record).where(record.issue_rec == q.id)).all()
+            return flask.render_template("iss-res.html", iss = q, recs = r), dbs.commit()
         except:
             flask.flash("cannot load lookup. check your id")
             return flask.redirect("/")
-    return flask.redirect("/")
+    elif tt == "rei":
+        try:
+            dbs.begin()
+            q = dbs.scalars(sa.select(receipt).where(receipt.id == ii)).first()
+            if not q:
+                raise
+            r = dbs.scalars(sa.select(record).where(record.receipt_rec == q.id)).all()
+            return flask.render_template("rei-res.html", rei = q, recs = r), dbs.commit()
+        except:
+            flask.flash("cannot load lookup. check your id")
+            return flask.redirect("/")
+    elif tt == "mov":
+        try:
+            dbs.begin()
+            q = dbs.scalars(sa.select(move).where(move.id == ii)).first()
+            if not q:
+                raise
+            r = dbs.scalars(sa.select(move__record).where(move__record.move_id == q.id)).all()
+            return flask.render_template("mov-res.html", mov = q, recs = r), dbs.commit()
+        except:
+            flask.flash("cannot load lookup. check your id")
+            return flask.redirect("/")
+    elif tt == "pos": 
+        try:
+            dbs.begin()
+            q = dbs.scalars(sa.select(position).where(position.id == ii)).first()
+            if not q:
+                raise
+            r = dbs.scalars(sa.select(record).where(record.current_position == q.id)).all()
+            return flask.render_template("pos-res.html", pos = q, recs = r), dbs.commit()
+        except:
+            flask.flash("cannot load lookup. check your id")
+            return flask.redirect("/")   
+    elif tt == "typ":
+        try:
+            dbs.begin()
+            q = dbs.scalars(sa.select(good_type).where(good_type.id == ii)).first()
+            if not q:
+                raise
+            r = dbs.scalars(sa.select(record).where(record.type == q.id)).all()
+            return flask.render_template("typ-res.html", typ = q, recs = r), dbs.commit()
+        except:
+            flask.flash("cannot load lookup. check your id")
+            return flask.redirect("/")
+    else:
+        flask.flash("cannot load lookup. check your id and type")
+        return flask.redirect("/")
+@app.route("/register", methods = ["GET","POST"])
+@login_required
+def register():
+    if flask.request.method == "POST":
+        try:
+            if not flask.request.form.get("name"):
+                raise
+            else:
+                nn = flask.request.form.get("name")
+            if not flask.request.form.get("password"):
+                raise
+            else:
+                ps = flask.request.form.get("password")
+            if not flask.request.form.get("mail"):
+                mail = sa.sql.null()
+            else:
+                mail = flask.request.form.get("mail")
+            if not flask.request.form.get("phone"):
+                phone = sa.sql.null()
+            else:
+                phone = flask.request.form.get("phone")
+            if not flask.request.form.get("fname"):
+                fname = sa.sql.null()
+            else:
+                fname = flask.request.form.get("fname")
+            if not flask.request.form.get("lname"):
+                lname = sa.sql.null()
+            else:
+                lname = flask.request.form.get("lname")
+            if not flask.request.form.getlist("tt"):
+                raise
+            else:
+                tt = flask.request.form.getlist("tt")
+            dbs.begin()
+            q = user(
+                name = nn,
+                hash = generate_password_hash(ps, method='pbkdf2:sha256', salt_length=8),
+                mail = mail,
+                phone = phone,
+                first_name = fname,
+                last_name = lname
+            )
+            dbs.add(q)
+            dbs.flush()
+            for t in tt:
+                w = user__user_type(
+                    user_id = q.id,
+                    type_id = int(t)
+                )
+                dbs.add(w)
+            flask.flash("user created")
+            dbs.commit()
+            return flask.redirect("/")
+        except:
+            flask.flash("error creating a user")
+            return flask.redirect("/")
+    else:
+        try:
+            dbs.begin()
+            q = dbs.scalars(sa.select(user_type))
+            return flask.render_template("register.html", types = q), dbs.commit()
+        except:
+            flask.flash("cannot load website. contact your system administrator")
+            return flask.redirect("/")
 @app.route("/test")
 def test():
     label = blabel.LabelWriter("./templates/labels/label_move.html", default_stylesheets=("./static/label_a4.css",))

@@ -1,0 +1,44 @@
+{% extends 'layout.html' %} {% block title %} move lookup {% endblock title
+    %} {% block main %}
+    <table class="table">
+      <tr>
+        <th>id</th>
+        <td>{{ mov.id }}</td>
+      </tr>
+        <th>user executing</th>
+        <td>{{ mov.user_executing }}</td>
+      </tr>
+      <tr>
+        <th>user approving</th>
+        <td>{{ mov.user_approving }}</td>
+      </tr>
+      <tr>
+        <th>end position</th>
+        <td>
+          <a href="/lkres?t=pos&id={{ mov.end_pos }}">{{ mov.end_pos }}</a>
+        </td>
+      </tr>
+      <tr>
+        <th>time info</th>
+        <td>{{ mov.time_info }}</td>
+      </tr>
+      <tr>
+        <th>comment</th>
+        <td>{{ mov.comment }}</td>
+      </tr>
+      <tr>
+        <th>completed</th>
+        <td>{{ mov.completed }}</td>
+      </tr>
+      <tr>
+        <th>connected records</th>
+        <td>
+        {% for r in recs %}
+          <a href="/lkres?t=rec&id={{ r.record_id }}">record-{{ r.record_id }}</a>
+          <a href="/lkres?t=pos&id={{ r.start_pos }}">start_pos-{{ r.start_pos }}</a>,
+        {% endfor %}
+        </td>
+      </tr>
+    </table>
+    {% endblock main %}
+    

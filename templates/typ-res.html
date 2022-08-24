@@ -1,0 +1,37 @@
+{% extends 'layout.html' %} {% block title %} good type lookup {% endblock title
+%} {% block main %}
+<table class="table">
+  <tr>
+    <th>id</th>
+    <td>{{ typ.id }}</td>
+  </tr>
+  <tr>
+    <th>name</th>
+    <td>{{ typ.name }}</td>
+  </tr>
+  <tr>
+    <th>ean</th>
+    <td>{{ typ.ean }}</td>
+  </tr>
+  <tr>
+    <th>size</th>
+    <td>{{ typ.size }}</td>
+  </tr>
+  <tr>
+    <th>weight</th>
+    <td>{{ typ.weight }}</td>
+  </tr>
+  <tr>
+    <th>package type</th>
+    <td>{{ typ.package_type_gt }}</td>
+  </tr>
+  <tr>
+    <th>records with this type</th>
+    <td>
+        {% for r in recs %}
+            <a href="/lkres?t=rec&id={{ r.id }}">{{ r.id }}</a>,
+        {% endfor %}
+    </td>
+</tr>
+</table>
+{% endblock main %}

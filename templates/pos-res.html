@@ -1,0 +1,40 @@
+{% extends 'layout.html' %}
+{% block title %}
+    position lookup
+{% endblock title %}
+{% block main %}
+<table class="table">
+    <tr>
+        <th>id</th>
+        <td>{{ pos.id }}</td>
+    </tr>
+    <tr>
+        <th>row</th>
+        <td>{{ pos.row }}</td>
+    </tr>
+    <tr>
+        <th>column</th>
+        <td>{{ pos.column }}</td>
+    </tr>
+    <tr>
+        <th>cell</th>
+        <td>{{ pos.cell }}</td>
+    </tr>
+    <tr>
+        <th>warehouse</th>
+        <td>{{ pos.warehouse_pos }}</td>
+    </tr>
+    <tr>
+        <th>zone</th>
+        <td>{{ pos.zone }}</td>
+    </tr>
+    <tr>
+        <th>records in position</th>
+        <td>
+            {% for r in recs %}
+                <a href="/lkres?t=rec&id={{ r.id }}">{{ r.id }}</a>,
+            {% endfor %}
+        </td>
+    </tr>
+</table>
+{% endblock main %}
