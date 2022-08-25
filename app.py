@@ -4,7 +4,7 @@ from flask_session import Session
 from werkzeug.security import check_password_hash, generate_password_hash
 import sqlalchemy as sa
 from sqlalchemy.ext.automap import automap_base
-from helpers import login_required
+from helpers import login_required, manager_required, admin_required
 import blabel
 
 app = flask.Flask(__name__)
@@ -70,18 +70,6 @@ move__record = Base.classes.move__record
 # setting dbs later used to work with db data
 dbs = sa.orm.Session(engine)
 
-# create admin user 
-def create_admin():
-    dbs.begin()
-    admin = user(
-        id = 1,
-        name = "admin",
-        hash = generate_password_hash("admin", method='pbkdf2:sha256', salt_length=8)
-    )
-    dbs.add(admin)
-    dbs.commit()
-    return
-# create_admin()
 def operation_log(ot):
     o = operation(
         ops_type = ot,
@@ -92,7 +80,15 @@ def operation_log(ot):
 @app.route("/")
 @login_required
 def index_worker():
-    return flask.render_template("index.html")
+    try:
+        cur_user = flask.session["user_id"]
+        dbs.begin()
+        moves = dbs.scalars(sa.select(move).where(sa.and_(sa.or_(move.user_executing == cur_user, move.user_executing == sa.sql.null()), move.completed == 0))).all()
+        receipts = dbs.scalars(sa.select(receipt).where(sa.and_(sa.or_(receipt.user_executing == cur_user, receipt.user_executing == sa.sql.null()), receipt.completed == 0)).order_by(sa.asc(receipt.arrival))).all()
+        issues = dbs.scalars(sa.select(issue).where(sa.and_(sa.or_(issue.user_executing == cur_user, issue.user_executing == sa.sql.null()), issue.completed == 0)).order_by(sa.asc(issue.departure))).all()
+        return flask.render_template("index.html", iss = issues, recs = receipts, mv = moves, cu = cur_user), dbs.commit()
+    except:
+        return flask.render_template("index-error.html")
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
@@ -121,7 +117,12 @@ def login():
         if not check_password_hash(rows.hash, flask.request.form.get("pass")):
               flask.flash("password and user name dont match")
               return flask.render_template("login.html")
-
+        q = dbs.scalars(sa.select(user__user_type).where(user__user_type.user_id == rows.id)).all()
+        for result in q:
+            if result.type_id == 1:
+                flask.session["is_admin"] = 1
+            if result.type_id == 2:
+                flask.session["is_manager"] = 1
         # # Remember which user has logged in
         flask.session["user_id"] = rows.id
         dbs.add(operation_log(1))
@@ -139,9 +140,12 @@ def logout():
     dbs.add(operation_log(2))
     dbs.commit()
     flask.session["user_id"] = None
+    flask.session["is_admin"] = None
+    flask.session["is_manager"] = None
     return flask.redirect("/login")
 @app.route("/category", methods=["GET","POST"])
 @login_required
+@admin_required
 def cat():
     # check if the required elements were included
     if flask.request.method == "POST":
@@ -170,6 +174,7 @@ def cat():
         return flask.render_template("category.html")
 @app.route("/gtc", methods=["GET","POST"])
 @login_required
+@admin_required
 def gtc():
     # check if the required elements were included
     if flask.request.method == "POST":
@@ -243,6 +248,7 @@ def gtc():
             return flask.redirect('/')
 @app.route("/org",methods=["GET", "POST"])
 @login_required
+@admin_required
 def org():
     # works the same way as POST part of gtc
     if flask.request.method == "POST":
@@ -282,6 +288,7 @@ def org():
         return flask.render_template("org.html")
 @app.route("/warehouse",methods=["GET", "POST"])
 @login_required
+@admin_required
 def war():
     # getting data from the form and inputing to db
     if flask.request.method == "POST":
@@ -394,6 +401,7 @@ def war():
             return flask.redirect('/')
 @app.route("/receipt",methods=["GET", "POST"])
 @login_required
+@manager_required
 def rec():
     # same as before
     if flask.request.method == "POST":
@@ -485,6 +493,7 @@ def rec():
             return flask.redirect("/")
 @app.route("/issue",methods=["GET","POST"])
 @login_required
+@manager_required
 def iss():
     if flask.request.method == "POST":
         supp = flask.request.form.get("supp")
@@ -571,6 +580,7 @@ def iss():
             return flask.redirect("/")
 @app.route("/move", methods=["POST","GET"])
 @login_required
+@manager_required
 def movcre():
     if flask.request.method == "POST":
         endpos = flask.request.form.get("endpos")
@@ -653,8 +663,10 @@ def lokres():
             dbs.begin()
             q = dbs.scalars(sa.select(record).where(record.id == ii)).first()
             if not q:
+                dbs.rollback()
                 raise
             r = dbs.scalars(sa.select(move).join(move__record).where(move__record.record_id == q.id))
+            dbs.add(operation_log(7))
             return flask.render_template("rec-res.html", rec = q, moves = r), dbs.commit()
         except:
             flask.flash("cannot load lookup. check your id")
@@ -664,8 +676,10 @@ def lokres():
             dbs.begin()
             q = dbs.scalars(sa.select(issue).where(issue.id == ii)).first()
             if not q:
+                dbs.rollback()
                 raise
             r = dbs.scalars(sa.select(record).where(record.issue_rec == q.id)).all()
+            dbs.add(operation_log(7))
             return flask.render_template("iss-res.html", iss = q, recs = r), dbs.commit()
         except:
             flask.flash("cannot load lookup. check your id")
@@ -675,8 +689,10 @@ def lokres():
             dbs.begin()
             q = dbs.scalars(sa.select(receipt).where(receipt.id == ii)).first()
             if not q:
+                dbs.rollback()
                 raise
             r = dbs.scalars(sa.select(record).where(record.receipt_rec == q.id)).all()
+            dbs.add(operation_log(7))
             return flask.render_template("rei-res.html", rei = q, recs = r), dbs.commit()
         except:
             flask.flash("cannot load lookup. check your id")
@@ -686,8 +702,10 @@ def lokres():
             dbs.begin()
             q = dbs.scalars(sa.select(move).where(move.id == ii)).first()
             if not q:
+                dbs.rollback()
                 raise
             r = dbs.scalars(sa.select(move__record).where(move__record.move_id == q.id)).all()
+            dbs.add(operation_log(7))
             return flask.render_template("mov-res.html", mov = q, recs = r), dbs.commit()
         except:
             flask.flash("cannot load lookup. check your id")
@@ -697,8 +715,10 @@ def lokres():
             dbs.begin()
             q = dbs.scalars(sa.select(position).where(position.id == ii)).first()
             if not q:
+                dbs.rollback()
                 raise
             r = dbs.scalars(sa.select(record).where(record.current_position == q.id)).all()
+            dbs.add(operation_log(7))
             return flask.render_template("pos-res.html", pos = q, recs = r), dbs.commit()
         except:
             flask.flash("cannot load lookup. check your id")
@@ -710,6 +730,7 @@ def lokres():
             if not q:
                 raise
             r = dbs.scalars(sa.select(record).where(record.type == q.id)).all()
+            dbs.add(operation_log(7))
             return flask.render_template("typ-res.html", typ = q, recs = r), dbs.commit()
         except:
             flask.flash("cannot load lookup. check your id")
@@ -719,6 +740,7 @@ def lokres():
         return flask.redirect("/")
 @app.route("/register", methods = ["GET","POST"])
 @login_required
+@admin_required
 def register():
     if flask.request.method == "POST":
         try:
@@ -783,8 +805,20 @@ def register():
             return flask.redirect("/")
 @app.route("/test")
 def test():
-    label = blabel.LabelWriter("./templates/labels/label_move.html", default_stylesheets=("./static/label_a4.css",))
-    records = [
-        dict(sample_id="2137", sample_name = "lalala")
-    ]
-    return label.write_labels(records, target="test.pdf")
+    label_writer = blabel.LabelWriter(
+    "./templates/labels/label_move.html", items_per_page=1, default_stylesheets=("./static/label_a4.css",)
+    )
+    records = list();
+    records.append(dict(sample_id="s01",heading="Heading 1",sample="Sample 1"));
+    records.append(dict(sample_id="s02",heading="Heading 2",sample="Sample 2"));
+    records.append(dict(sample_id="s03",heading="Heading 3",sample="Sample 3"));
+    records.append(dict(sample_id="s04",heading="Heading 4",sample="Sample 4"));
+    records.append(dict(sample_id="s05",heading="Heading 5",sample="Sample 5"));
+    records.append(dict(sample_id="s06",heading="Heading 6",sample="Sample 6"));
+    records.append(dict(sample_id="s07",heading="Heading 7",sample="Sample 7"));
+    records.append(dict(sample_id="s08",heading="Heading 8",sample="Sample 8"));
+    records.append(dict(sample_id="s09",heading="Heading 9",sample="Sample 9"));
+
+
+    label_writer.write_labels(records, target="labels_on_a4_paper.pdf", base_url=".")
+    return flask.redirect("/")

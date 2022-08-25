@@ -25,6 +25,7 @@
           <li class="nav-item">
             <a class="nav-link" href="/lookup">lookup</a>
           </li>
+          {% if session["is_manager"] %}
           <li class="nav-item">
             <a class="nav-link" href="/receipt">receipt</a>
           </li>
@@ -34,6 +35,8 @@
           <li class="nav-item">
             <a class="nav-link" href="/move">move</a>
           </li>
+          {% endif %}
+          {% if session["is_admin"] %}
           <li class="nav-item dropdown">
             <a
               class="nav-link dropdown-toggle"
@@ -55,12 +58,15 @@
               </li>
             </ul>
           </li>
+          {% endif %}
         </div>
       </ul>
       <ul class="nav navbar-nav ms-auto">
+        {% if session["is_admin"] %}
         <li class="nav-item">
           <a class="nav-link text-end" href="/register">register</a>
         </li>
+        {% endif %}
         <li class="nav-item">
           <a class="nav-link text-end" href="/logout">Log out</a>
         </li>

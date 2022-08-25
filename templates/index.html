@@ -1,5 +1,127 @@
-{% extends "layout.html" %}
-{% block title %}orders{% endblock %}
-{% block main %}
-index
+{% extends "layout.html" %} {% block title %}orders{% endblock %} {% block main
+%}
+<div class="accordion accordion-flush" id="accordionFlushExample">
+  <div class="accordion-item">
+    <h2 class="accordion-header" id="flush-headingOne">
+      <button
+        class="accordion-button collapsed"
+        type="button"
+        data-bs-toggle="collapse"
+        data-bs-target="#flush-collapseOne"
+        aria-expanded="false"
+        aria-controls="flush-collapseOne"
+      >
+        assignde to me
+      </button>
+    </h2>
+    <div
+      id="flush-collapseOne"
+      class="accordion-collapse collapse"
+      aria-labelledby="flush-headingOne"
+      data-bs-parent="#accordionFlushExample"
+    >
+      <div class="accordion-body">
+        <h2>issues</h2>
+        <table class="table">
+            {% for i in iss %}
+            {% if  i.user_executing == cu %}
+                <tr>
+                    <td>{{ i.id }}</td>
+                    <td>{{ i.position_is }}</td>
+                    <td>{{ i.departure }}</td>
+                    <td class="text-end"><a name="" id="" class="btn btn-primary" href="/hand?t=iss&id={{ i.id }}" role="button">handle</a></td>
+                </tr>
+            {% endif %}
+            {% endfor %}
+        </table>
+            <h2>receipts</h2>
+            <table class="table">
+            {% for r in recs %}
+            {% if  r.user_executing == cu %}
+                <tr>
+                    <td>{{ r.id }}</td>
+                    <td>{{ r.position_re }}</td>
+                    <td>{{ r.arrival }}</td>
+                    <td class="text-end"><a name="" id="" class="btn btn-primary" href="/hand?t=rei&id={{ r.id }}" role="button">handle</a></td>
+                </tr>
+            {% endif %}
+            {% endfor %}
+            </table>
+            <h2>moves</h2>
+            <table class="table">
+            {% for m in mv %}
+            {% if  m.user_executing == cu %}
+                <tr>
+                    <td>{{ m.id }}</td>
+                    <td>{{ m.end_pos }}</td>
+                    <td class="text-end"><a name="" id="" class="btn btn-primary" href="/hand?t=mov&id={{ m.id }}" role="button">handle</a></td>
+                </tr>
+            {% endif %}
+            {% endfor %}
+            </table>
+      </div>
+    </div>
+  </div>
+  <div class="accordion-item">
+    <h2 class="accordion-header" id="flush-headingTwo">
+      <button
+        class="accordion-button collapsed"
+        type="button"
+        data-bs-toggle="collapse"
+        data-bs-target="#flush-collapseTwo"
+        aria-expanded="false"
+        aria-controls="flush-collapseTwo"
+      >
+        free to take
+      </button>
+    </h2>
+    <div
+      id="flush-collapseTwo"
+      class="accordion-collapse collapse"
+      aria-labelledby="flush-headingTwo"
+      data-bs-parent="#accordionFlushExample"
+    >
+      <div class="accordion-body">
+        <h2>issues</h2>
+        <table class="table">
+            {% for i in iss %}
+            {% if  i.user_executing != cu %}
+                <tr>
+                    <td>{{ i.id }}</td>
+                    <td>{{ i.position_is }}</td>
+                    <td>{{ i.departure }}</td>
+                    <td class="text-end"><a name="" id="" class="btn btn-primary" href="/hand?t=iss&id={{ i.id }}" role="button">handle</a></td>
+                </tr>
+            {% endif %}
+            {% endfor %}
+        </table>
+            <h2>receipts</h2>
+            <table class="table">
+            {% for r in recs %}
+            {% if  r.user_executing != cu %}
+                <tr>
+                    <td>{{ r.id }}</td>
+                    <td>{{ r.position_re }}</td>
+                    <td>{{ r.arrival }}</td>
+                    <td class="text-end"><a name="" id="" class="btn btn-primary" href="/hand?t=rei&id={{ r.id }}" role="button">handle</a></td>
+                </tr>
+            {% endif %}
+            {% endfor %}
+            </table>
+            <h2>moves</h2>
+            <table class="table">
+            {% for m in mv %}
+            {% if  m.user_executing != cu %}
+                <tr>
+                    <td>{{ m.id }}</td>
+                    <td>{{ m.end_pos }}</td>
+                    <td class="text-end"><a name="" id="" class="btn btn-primary" href="/hand?t=mov&id={{ m.id }}" role="button">handle</a></td>
+                </tr>
+            {% endif %}
+            {% endfor %}
+            </table>
+      </div>
+    </div>
+  </div>
+</div>
 {% endblock %}
