@@ -1,0 +1,58 @@
+{% extends 'layout.html' %} {% block title %} handling a issue {% endblock title
+%} {% block main %}
+<h2>issue nr.{{ aid }}</h2>
+<div class="text-center">
+  <a
+    name=""
+    id=""
+    class="btn btn-primary"
+    href="/action-label?t=iss&id={{ aid }}"
+    role="button"
+    target="_blank"
+    >Generate a issue label</a
+  >
+</div>
+<form action="/hand" method="post" class="mb-3 mx-auto w-50 text-start">
+  <div class="mb-3">
+    <input
+      type="text"
+      class="form-control"
+      name="a_id"
+      id="a_id"
+      aria-describedby="helpId"
+      placeholder=""
+      hidden
+      value="{{ aid }}"
+    />
+  </div>
+  <div class="mb-3">
+    <input
+      type="text"
+      class="form-control"
+      name="a_typ"
+      id="a_typ"
+      aria-describedby="helpId"
+      placeholder=""
+      hidden
+      value="{{ atyp }}"
+    />
+  </div>
+  <h4>scan record labels to confirm</h4>
+  {% for x in ll %}
+  <div class="mb-3">
+    <label for="ans{{x.id}}" class="form-label">rec-{{x.id}}</label>
+    <input
+      type="text"
+      class="form-control"
+      name="ans{{x.id}}"
+      id="ans{{x.id}}"
+      aria-describedby="helpId"
+      placeholder="rec-00000"
+    />
+  </div>
+  {% endfor %}
+  <div class="text-center">
+    <button type="submit" class="btn btn-primary">Submit</button>
+  </div>
+</form>
+{% endblock main %}

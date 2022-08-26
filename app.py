@@ -806,7 +806,7 @@ def register():
             return flask.redirect("/")
 @app.route("/rec-label", methods=["GET"])
 @login_required
-def a4label():
+def rec_label():
     try:
         label_writer = blabel.LabelWriter(
         "./templates/labels/label_rec.html", items_per_page=1, default_stylesheets=("./static/label_rec.css",)
@@ -830,47 +830,187 @@ def action_label():
         id = flask.request.args.get("id")
         typ = flask.request.args.get("t")
         if typ == "mov":
-            label_writer = blabel.LabelWriter(
-            "./templates/labels/label_move.html", items_per_page=1, default_stylesheets=("./static/label_action.css",)
-            )
-            dbs.begin()
-            q = dbs.scalars(sa.select(move).where(move.id == id)).first()
-            if not q:
-                raise
-            w = dbs.scalars(sa.select(move__record).where(move__record.move_id == id)).all()
-            records.append(dict(fi = 1, move_id = "mov-{}".format(q.id), comment = q.comment, endpos = "pos-{}".format(q.end_pos)))
-            for ww in w:
-                records.append(dict(fi = 0, record_id = "rec-{}".format(ww.record_id), pos_id = "pos-{}".format(ww.start_pos)))
-            ff = "{}.pdf".format(datetime.now())
-            label_writer.write_labels(records, target=ff, base_url=".")
-            return flask.send_file(ff), os.remove(ff), dbs.commit()
+            try:
+                label_writer = blabel.LabelWriter(
+                "./templates/labels/label_move.html", items_per_page=1, default_stylesheets=("./static/label_action.css",)
+                )
+                dbs.begin()
+                q = dbs.scalars(sa.select(move).where(move.id == id)).first()
+                if not q:
+                    raise
+                w = dbs.scalars(sa.select(move__record).where(move__record.move_id == id)).all()
+                records.append(dict(fi = 1, move_id = "mov-{}".format(q.id), comment = q.comment, endpos = "pos-{}".format(q.end_pos)))
+                for ww in w:
+                    records.append(dict(fi = 0, record_id = "rec-{}".format(ww.record_id), pos_id = "pos-{}".format(ww.start_pos)))
+                ff = "{}.pdf".format(datetime.now())
+                label_writer.write_labels(records, target=ff, base_url=".")
+                return flask.send_file(ff), os.remove(ff), dbs.commit()
+            except:
+                flask.flash("cannot create a label. check your id")
+                return flask.redirect("/")
         elif typ == "rei":
-            label_writer = blabel.LabelWriter(
-            "./templates/labels/label_receipt.html", items_per_page=1, default_stylesheets=("./static/label_action.css",)
-            )
-            dbs.begin()
-            q = dbs.scalars(sa.select(receipt).where(receipt.id == id)).first()
-            if not q:
-                raise
-            w = dbs.query(record.type, sa.func.count(record.id)).where(record.receipt_rec == id).group_by(record.type)
-            records.append(dict(fi = 1, receipt_id = "rei-{}".format(q.id), comment = q.comment, endpos = "pos-{}".format(q.position_re), arrival = q.arrival))
-            for ww in w:
-                records.append(dict(fi = 0, num_of_type = ww[1], tt = "typ-{}".format(ww[0])))
-            ff = "{}.pdf".format(datetime.now())
-            label_writer.write_labels(records, target=ff, base_url=".")
-            return flask.send_file(ff), os.remove(ff), dbs.commit()
+            try:
+                label_writer = blabel.LabelWriter(
+                "./templates/labels/label_receipt.html", items_per_page=1, default_stylesheets=("./static/label_action.css",)
+                )
+                dbs.begin()
+                q = dbs.scalars(sa.select(receipt).where(receipt.id == id)).first()
+                if not q:
+                    raise
+                w = dbs.query(record.type, sa.func.count(record.id)).where(record.receipt_rec == id).group_by(record.type)
+                records.append(dict(fi = 1, receipt_id = "rei-{}".format(q.id), comment = q.comment, endpos = "pos-{}".format(q.position_re), arrival = q.arrival))
+                for ww in w:
+                    records.append(dict(fi = 0, num_of_type = ww[1], tt = "typ-{}".format(ww[0])))
+                ff = "{}.pdf".format(datetime.now())
+                label_writer.write_labels(records, target=ff, base_url=".")
+                return flask.send_file(ff), os.remove(ff), dbs.commit()
+            except:
+                flask.flash("cannot create a label. check your id")
+                return flask.redirect("/")
         elif typ == "iss":
-            label_writer = blabel.LabelWriter(
-            "./templates/labels/label_issue.html", items_per_page=1, default_stylesheets=("./static/label_action.css",)
-            )
-            dbs.begin()
-            q = dbs.scalars(sa.select(issue).where(issue.id == id)).first()
-            if not q:
-                raise
-            w = dbs.scalars(sa.select(record).where(record.issue_rec == id)).all()
-            records.append(dict(fi = 1, issue_id = "iss-{}".format(q.id), comment = q.comment, endpos = "pos-{}".format(q.position_is), departure = q.departure))
-            for ww in w:
-                records.append(dict(fi = 0, record_id = "rec-{}".format(ww.id), pos_id = "pos-{}".format(ww.current_position)))
-            ff = "{}.pdf".format(datetime.now())
-            label_writer.write_labels(records, target=ff, base_url=".")
-            return flask.send_file(ff), os.remove(ff), dbs.commit()
+            try:
+                label_writer = blabel.LabelWriter(
+                "./templates/labels/label_issue.html", items_per_page=1, default_stylesheets=("./static/label_action.css",)
+                )
+                dbs.begin()
+                q = dbs.scalars(sa.select(issue).where(issue.id == id)).first()
+                if not q:
+                    raise
+                w = dbs.scalars(sa.select(record).where(record.issue_rec == id)).all()
+                records.append(dict(fi = 1, issue_id = "iss-{}".format(q.id), comment = q.comment, endpos = "pos-{}".format(q.position_is), departure = q.departure))
+                for ww in w:
+                    records.append(dict(fi = 0, record_id = "rec-{}".format(ww.id), pos_id = "pos-{}".format(ww.current_position)))
+                ff = "{}.pdf".format(datetime.now())
+                label_writer.write_labels(records, target=ff, base_url=".")
+                return flask.send_file(ff), os.remove(ff), dbs.commit()
+            except:
+                flask.flash("cannot create a label. check your id")
+                return flask.redirect("/")
+        else:
+            flask.flash("prefix not valid.")
+            return flask.redirect("/")
+@app.route("/hand", methods=["GET", "POST"])
+@login_required
+def hand():
+    if flask.request.method == "POST":
+        typ = flask.request.form.get("a_typ")
+        aid = flask.request.form.get("a_id")
+        if typ == "rei":
+            try:
+                dbs.begin()
+                q = dbs.scalars(sa.select(record).where(record.receipt_rec == aid))
+                for i in q:
+                    if not flask.request.form.get("ans{}".format(i.id)) == "rec-{}".format(i.id):
+                        flask.flash("scanned records dont match records")
+                        return flask.redirect("/")
+                w = sa.update(receipt).where(receipt.id == aid).values(completed=1)
+                dbs.execute(w)
+                dbs.add(operation_log(8))
+                flask.flash("operation succesfully completed")
+                return flask.redirect("/"), dbs.commit()
+            except:
+                flask.flash("error while compliting this operation")
+                return flask.redirect("/")
+        if typ == "iss":
+            try:
+                dbs.begin()
+                q = dbs.scalars(sa.select(record).where(record.receipt_rec == aid))
+                for i in q:
+                    if not flask.request.form.get("ans{}".format(i.id)) == "rec-{}".format(i.id):
+                        flask.flash("scanned records dont match records")
+                        return flask.redirect("/")
+                w = sa.update(issue).where(issue.id == aid).values(completed=1)
+                dbs.execute(w)
+                dbs.add(operation_log(9))
+                flask.flash("operation succesfully completed")
+                return flask.redirect("/"), dbs.commit()
+            except:
+                flask.flash("error while compliting this operation")
+                return flask.redirect("/")
+        if typ == "mov":
+            try:
+                dbs.begin()
+                q = dbs.scalars(sa.select(move__record).where(move__record.move_id == aid)).all()
+                for i in q:
+                    if not flask.request.form.get("ans{}".format(i.record_id)) == "rec-{}".format(i.record_id):
+                        flask.flash("scanned records dont match records")
+                        return flask.redirect("/")
+                w = sa.update(move).where(move.id == aid).values(completed=1)
+                dbs.execute(w)
+                dbs.add(operation_log(10))
+                flask.flash("operation succesfully completed")
+                return flask.redirect("/"), dbs.commit()
+            except:
+                flask.flash("error while compliting this operation")
+                return flask.redirect("/")     
+        else:
+            flask.flash("type not valid")
+            return flask.redirect("/")
+    else:
+        typ = flask.request.args.get("t")
+        id = flask.request.args.get("id")
+        cur_user = flask.session["user_id"]
+        if typ == "rei":
+            try:
+                dbs.begin()
+                q = dbs.scalars(sa.select(receipt).where(receipt.id == id)).first()
+                if not q:
+                    raise
+                if not ((not q.user_executing) or q.user_executing == cur_user):
+                    flask.flash("operation already taken by somemone else")
+                    return flask.redirect("/"), dbs.rollback()
+                if q.completed != 0:
+                    flask.flash("operation already completed")
+                    return flask.redirect("/"), dbs.rollback()
+                w = sa.update(receipt).where(receipt.id == id).values(user_executing=cur_user)
+                dbs.execute(w)
+                rs = dbs.scalars(sa.select(record).where(record.receipt_rec == id))
+                ll = list()
+                for r in rs:
+                    ll.append(r.id)
+                rl = ll
+                return flask.render_template("handle-receipt.html", aid=id, atyp = typ,rl = rl, ll = ll), dbs.commit()
+            except:
+                flask.flash("cannot load a website")
+                return flask.redirect("/")
+        if typ == "iss":
+            try:
+                dbs.begin()
+                q = dbs.scalars(sa.select(issue).where(issue.id == id)).first()
+                if not q:
+                    raise
+                if not ((not q.user_executing) or q.user_executing == cur_user):
+                    flask.flash("operation already taken by somemone else")
+                    return flask.redirect("/"), dbs.rollback()
+                if q.completed != 0:
+                    flask.flash("operation already completed")
+                    return flask.redirect("/"), dbs.rollback()
+                w = sa.update(issue).where(issue.id == id).values(user_executing=cur_user)
+                dbs.execute(w)
+                rs = dbs.scalars(sa.select(record).where(record.issue_rec == id)).all()
+                return flask.render_template("handle-issue.html", aid = id, atyp = typ, ll = rs), dbs.commit()
+            except:
+                flask.flash("cannot load a website")
+                return flask.redirect("/")
+        if typ == "mov":
+            try:
+                dbs.begin()
+                q = dbs.scalars(sa.select(move).where(move.id == id)).first()
+                if not q:
+                    raise
+                if not ((not q.user_executing) or q.user_executing == cur_user):
+                    flask.flash("operation already taken by somemone else")
+                    return flask.redirect("/"), dbs.rollback()
+                if q.completed != 0:
+                    flask.flash("operation already completed")
+                    return flask.redirect("/"), dbs.rollback()
+                w = sa.update(move).where(move.id == id).values(user_executing=cur_user)
+                dbs.execute(w)
+                rs = dbs.scalars(sa.select(move__record).where(move__record.move_id == id)).all()
+                return flask.render_template("handle-move.html", aid = id, atyp = typ, ll = rs), dbs.commit()
+            except:
+                flask.flash("cannot load a website")
+                return flask.redirect("/")
+        else:
+            flask.flash("wrong type")
+            return flask.redirect("/")

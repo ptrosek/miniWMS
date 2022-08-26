@@ -9,6 +9,9 @@
     /* width: 52.3mm;              signle lable width on the A4 paper */
     float:left;
 }
+.xx {
+    width: 96.7mm;
+}
 .item {
   margin-top:4mm;
   margin-left:4mm;
