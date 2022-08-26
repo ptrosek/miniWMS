@@ -1,0 +1,33 @@
+<div>
+    {% if fi == 1 %}
+    <div>
+        <div class="de">
+            <h2>receipt of goods</h2>
+            <img src="{{label_tools.barcode(receipt_id, module_width=1.5, font_size=30,write_text=false, barcode_class='code128')}}" alt="" class="barcode">
+            <br>
+            {{ receipt_id }}
+            <br>
+            comment:
+            {{ comment }}
+            <br>
+            to
+            <br>
+            <img src="{{label_tools.barcode(endpos, module_width=1.5, font_size=30,write_text=false, barcode_class='code128')}}" alt="" class="barcode">
+            <br>
+            {{ endpos }}
+            <br>
+            at
+            <br>
+            {{ arrival }}
+        </div>
+    </div>
+    contains:
+    {% endif %}
+    {% if fi == 0 %}
+        <div>
+            {{ num_of_type }} of <img src="{{label_tools.barcode(tt, module_width=1.5, font_size=30,write_text=false, barcode_class='code128')}}" alt="" class="barcode">
+            <br>
+            {{ tt }}
+        </div>
+    {% endif %}
+</div>

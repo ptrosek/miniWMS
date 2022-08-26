@@ -1,3 +1,4 @@
+from datetime import datetime
 import flask
 import os
 from flask_session import Session
@@ -803,22 +804,73 @@ def register():
         except:
             flask.flash("cannot load website. contact your system administrator")
             return flask.redirect("/")
-@app.route("/test")
-def test():
-    label_writer = blabel.LabelWriter(
-    "./templates/labels/label_move.html", items_per_page=1, default_stylesheets=("./static/label_a4.css",)
-    )
-    records = list();
-    records.append(dict(sample_id="s01",heading="Heading 1",sample="Sample 1"));
-    records.append(dict(sample_id="s02",heading="Heading 2",sample="Sample 2"));
-    records.append(dict(sample_id="s03",heading="Heading 3",sample="Sample 3"));
-    records.append(dict(sample_id="s04",heading="Heading 4",sample="Sample 4"));
-    records.append(dict(sample_id="s05",heading="Heading 5",sample="Sample 5"));
-    records.append(dict(sample_id="s06",heading="Heading 6",sample="Sample 6"));
-    records.append(dict(sample_id="s07",heading="Heading 7",sample="Sample 7"));
-    records.append(dict(sample_id="s08",heading="Heading 8",sample="Sample 8"));
-    records.append(dict(sample_id="s09",heading="Heading 9",sample="Sample 9"));
-
-
-    label_writer.write_labels(records, target="labels_on_a4_paper.pdf", base_url=".")
-    return flask.redirect("/")
+@app.route("/rec-label", methods=["GET"])
+@login_required
+def a4label():
+    try:
+        label_writer = blabel.LabelWriter(
+        "./templates/labels/label_rec.html", items_per_page=1, default_stylesheets=("./static/label_rec.css",)
+        )
+        records = list()
+        id = flask.request.args.getlist("id")
+        dbs.begin()
+        for i in id:
+            q = dbs.scalars(sa.select(good_type).join(record).where(record.id == i)).first()
+            records.append(dict(sample_id = "rec-{}".format(i), sample_name = q.name))
+        ff = "{}.pdf".format(datetime.now())
+        label_writer.write_labels(records, target=ff, base_url=".")
+        return flask.send_file(ff), os.remove(ff), dbs.commit()
+    except:
+        flask.flash("cannot genarate a label")
+        return flask.redirect("/")
+@app.route("/action-label", methods=["GET"])
+@login_required
+def action_label():
+        records = list()
+        id = flask.request.args.get("id")
+        typ = flask.request.args.get("t")
+        if typ == "mov":
+            label_writer = blabel.LabelWriter(
+            "./templates/labels/label_move.html", items_per_page=1, default_stylesheets=("./static/label_action.css",)
+            )
+            dbs.begin()
+            q = dbs.scalars(sa.select(move).where(move.id == id)).first()
+            if not q:
+                raise
+            w = dbs.scalars(sa.select(move__record).where(move__record.move_id == id)).all()
+            records.append(dict(fi = 1, move_id = "mov-{}".format(q.id), comment = q.comment, endpos = "pos-{}".format(q.end_pos)))
+            for ww in w:
+                records.append(dict(fi = 0, record_id = "rec-{}".format(ww.record_id), pos_id = "pos-{}".format(ww.start_pos)))
+            ff = "{}.pdf".format(datetime.now())
+            label_writer.write_labels(records, target=ff, base_url=".")
+            return flask.send_file(ff), os.remove(ff), dbs.commit()
+        elif typ == "rei":
+            label_writer = blabel.LabelWriter(
+            "./templates/labels/label_receipt.html", items_per_page=1, default_stylesheets=("./static/label_action.css",)
+            )
+            dbs.begin()
+            q = dbs.scalars(sa.select(receipt).where(receipt.id == id)).first()
+            if not q:
+                raise
+            w = dbs.query(record.type, sa.func.count(record.id)).where(record.receipt_rec == id).group_by(record.type)
+            records.append(dict(fi = 1, receipt_id = "rei-{}".format(q.id), comment = q.comment, endpos = "pos-{}".format(q.position_re), arrival = q.arrival))
+            for ww in w:
+                records.append(dict(fi = 0, num_of_type = ww[1], tt = "typ-{}".format(ww[0])))
+            ff = "{}.pdf".format(datetime.now())
+            label_writer.write_labels(records, target=ff, base_url=".")
+            return flask.send_file(ff), os.remove(ff), dbs.commit()
+        elif typ == "iss":
+            label_writer = blabel.LabelWriter(
+            "./templates/labels/label_issue.html", items_per_page=1, default_stylesheets=("./static/label_action.css",)
+            )
+            dbs.begin()
+            q = dbs.scalars(sa.select(issue).where(issue.id == id)).first()
+            if not q:
+                raise
+            w = dbs.scalars(sa.select(record).where(record.issue_rec == id)).all()
+            records.append(dict(fi = 1, issue_id = "iss-{}".format(q.id), comment = q.comment, endpos = "pos-{}".format(q.position_is), departure = q.departure))
+            for ww in w:
+                records.append(dict(fi = 0, record_id = "rec-{}".format(ww.id), pos_id = "pos-{}".format(ww.current_position)))
+            ff = "{}.pdf".format(datetime.now())
+            label_writer.write_labels(records, target=ff, base_url=".")
+            return flask.send_file(ff), os.remove(ff), dbs.commit()

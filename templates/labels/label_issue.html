@@ -2,10 +2,10 @@
     {% if fi == 1 %}
     <div>
         <div class="de">
-            <h2>move operation</h2>
-            <img src="{{label_tools.barcode(move_id, module_width=1.5, font_size=30,write_text=false, barcode_class='code128')}}" alt="" class="barcode">
+            <h2>stock issue</h2>
+            <img src="{{label_tools.barcode(issue_id, module_width=1.5, font_size=30,write_text=false, barcode_class='code128')}}" alt="" class="barcode">
             <br>
-            {{ move_id }}
+            {{ issue_id }}
             <br>
             comment:
             {{ comment }}
@@ -15,6 +15,10 @@
             <img src="{{label_tools.barcode(endpos, module_width=1.5, font_size=30,write_text=false, barcode_class='code128')}}" alt="" class="barcode">
             <br>
             {{ endpos }}
+            <br>
+            by
+            <br>
+            {{ departure }}
         </div>
     </div>
     {% endif %}
