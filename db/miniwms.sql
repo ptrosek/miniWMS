@@ -275,12 +275,18 @@ CREATE TABLE `package_type` (
   `id` int NOT NULL AUTO_INCREMENT,
   `name` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
 -- Dumping data for table `package_type`
 --
+
+LOCK TABLES `package_type` WRITE;
+/*!40000 ALTER TABLE `package_type` DISABLE KEYS */;
+INSERT INTO `package_type` VALUES (1,'standard box'),(2,'pallet'),(3,'envelope'),(4,'rigid box'),(5,'loose');
+/*!40000 ALTER TABLE `package_type` ENABLE KEYS */;
+UNLOCK TABLES;
 
 LOCK TABLES `package_type` WRITE;
 /*!40000 ALTER TABLE `package_type` DISABLE KEYS */;
@@ -302,7 +308,7 @@ CREATE TABLE `position` (
   `warehouse_pos` int DEFAULT NULL,
   `zone` varchar(45) DEFAULT NULL,
   PRIMARY KEY (`id`),
-  KEY `position-warehouse_idx` (`warehouse_pos`),
+  KEY `position-warehouse_idx` (`warehouse_pos`), 
   CONSTRAINT `position-warehouse` FOREIGN KEY (`warehouse_pos`) REFERENCES `warehouse` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
