@@ -275,7 +275,7 @@ CREATE TABLE `package_type` (
   `id` int NOT NULL AUTO_INCREMENT,
   `name` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -308,7 +308,7 @@ CREATE TABLE `position` (
   `warehouse_pos` int DEFAULT NULL,
   `zone` varchar(45) DEFAULT NULL,
   PRIMARY KEY (`id`),
-  KEY `position-warehouse_idx` (`warehouse_pos`),
+  KEY `position-warehouse_idx` (`warehouse_pos`), 
   CONSTRAINT `position-warehouse` FOREIGN KEY (`warehouse_pos`) REFERENCES `warehouse` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
