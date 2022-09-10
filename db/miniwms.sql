@@ -284,6 +284,12 @@ CREATE TABLE `package_type` (
 
 LOCK TABLES `package_type` WRITE;
 /*!40000 ALTER TABLE `package_type` DISABLE KEYS */;
+INSERT INTO `package_type` VALUES (1,'standard box'),(2,'pallet'),(3,'envelope'),(4,'rigid box'),(5,'loose');
+/*!40000 ALTER TABLE `package_type` ENABLE KEYS */;
+UNLOCK TABLES;
+
+LOCK TABLES `package_type` WRITE;
+/*!40000 ALTER TABLE `package_type` DISABLE KEYS */;
 /*!40000 ALTER TABLE `package_type` ENABLE KEYS */;
 UNLOCK TABLES;
 
