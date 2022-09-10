@@ -25,7 +25,7 @@ DB_PASS = os.environ.get('DB_PASS_MWS')
 # creating sqlalchemy connection string and connecting the engine
 try:
     txt = 'mysql://{duser}:{dpass}@localhost/miniwms'.format(duser = DB_USER, dpass = DB_PASS)
-    engine = sa.create_engine(txt, echo=True, future=True)
+    engine = sa.create_engine(txt, echo=False, future=True)
     meta = sa.MetaData()
     Base = automap_base()
     Base.prepare(engine)
@@ -94,6 +94,9 @@ def index_worker():
 @app.route("/login", methods=["GET", "POST"])
 def login():
     """Log user in"""
+    # print(flask.session["is_admin"])
+    # print(flask.session["is_manager"])
+    # print(flask.session["user_id"])
     # Forget any user_id
     flask.session["user_id"] = None
     # User reached route via POST (as by submitting a form via POST)
@@ -109,7 +112,7 @@ def login():
         # Query database for username
         dbs.begin()
         rows = dbs.query(user).filter_by(name=flask.request.form.get("uid")).first()
-        # print(rows.name)
+        print(rows.name)
         # print(rows.hash)
         # print(generate_password_hash("admin", method='pbkdf2:sha256', salt_length=8))
         # print(check_password_hash(rows.hash, flask.request.form.get("pass")))
@@ -120,6 +123,7 @@ def login():
               return flask.render_template("login.html")
         q = dbs.scalars(sa.select(user__user_type).where(user__user_type.user_id == rows.id)).all()
         for result in q:
+            # print(result.type_id)
             if result.type_id == 1:
                 flask.session["is_admin"] = 1
             if result.type_id == 2:
@@ -129,6 +133,9 @@ def login():
         dbs.add(operation_log(1))
         dbs.commit()
         # Redirect user to home page
+        # print(flask.session["is_admin"])
+        # print(flask.session["is_manager"])
+        # print(flask.session["user_id"])
         return flask.redirect("/")
 
     # User reached route via GET (as by clicking a link or via redirect)

@@ -1,8 +1,10 @@
--- MySQL dump 10.13  Distrib 8.0.29, for Win64 (x86_64)
+CREATE DATABASE  IF NOT EXISTS `miniwms` /*!40100 DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci */ /*!80016 DEFAULT ENCRYPTION='N' */;
+USE `miniwms`;
+-- MySQL dump 10.13  Distrib 8.0.30, for Win64 (x86_64)
 --
--- Host: localhost    Database: miniwms
+-- Host: 127.0.0.1    Database: miniwms
 -- ------------------------------------------------------
--- Server version	8.0.29
+-- Server version	8.0.30-0ubuntu0.22.04.1
 
 /*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
 /*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
@@ -18,9 +20,6 @@
 --
 -- Table structure for table `category`
 --
-DROP Database IF EXISTS `miniwms`;
-CREATE Database `miniwms`;
-USE `miniwms`;
 
 DROP TABLE IF EXISTS `category`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -53,7 +52,7 @@ DROP TABLE IF EXISTS `good_type`;
 CREATE TABLE `good_type` (
   `id` int NOT NULL AUTO_INCREMENT,
   `name` varchar(255) NOT NULL,
-  `ean` int DEFAULT NULL,
+  `ean` bigint DEFAULT NULL,
   `size` varchar(100) DEFAULT NULL,
   `weight` varchar(100) DEFAULT NULL,
   `package_type_gt` int DEFAULT NULL,
@@ -89,6 +88,7 @@ CREATE TABLE `issue` (
   `time_info` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `comment` varchar(1000) DEFAULT NULL,
   `departure` datetime DEFAULT NULL,
+  `completed` tinyint(1) DEFAULT '0',
   PRIMARY KEY (`id`),
   KEY `is-user_idx` (`user_executing`),
   KEY `is-pos_idx` (`position_is`),
@@ -111,6 +111,74 @@ LOCK TABLES `issue` WRITE;
 UNLOCK TABLES;
 
 --
+-- Table structure for table `move`
+--
+
+DROP TABLE IF EXISTS `move`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `move` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `end_pos` int DEFAULT NULL,
+  `user_approving` int DEFAULT NULL,
+  `time_info` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `comment` varchar(1000) DEFAULT NULL,
+  `user_executing` int DEFAULT NULL,
+  `completed` tinyint(1) DEFAULT '0',
+  PRIMARY KEY (`id`),
+  KEY `moveusera_idx` (`user_approving`),
+  KEY `moveusere_idx` (`user_executing`),
+  KEY `moveendpos_idx` (`end_pos`),
+  CONSTRAINT `moveendpos` FOREIGN KEY (`end_pos`) REFERENCES `position` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
+  CONSTRAINT `moveusera` FOREIGN KEY (`user_approving`) REFERENCES `user` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
+  CONSTRAINT `moveusere` FOREIGN KEY (`user_executing`) REFERENCES `user` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `move`
+--
+
+LOCK TABLES `move` WRITE;
+/*!40000 ALTER TABLE `move` DISABLE KEYS */;
+/*!40000 ALTER TABLE `move` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `move__record`
+--
+
+DROP TABLE IF EXISTS `move__record`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `move__record` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `move_id` int NOT NULL,
+  `record_id` int NOT NULL,
+  `start_pos` int NOT NULL,
+  `end_pos` int NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `mrposs_idx` (`start_pos`),
+  KEY `mrpose_idx` (`end_pos`),
+  KEY `mrrecord_idx` (`record_id`),
+  KEY `mrmove_idx` (`move_id`),
+  CONSTRAINT `mrmove` FOREIGN KEY (`move_id`) REFERENCES `move` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
+  CONSTRAINT `mrpose` FOREIGN KEY (`end_pos`) REFERENCES `position` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
+  CONSTRAINT `mrposs` FOREIGN KEY (`start_pos`) REFERENCES `position` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
+  CONSTRAINT `mrrecord` FOREIGN KEY (`record_id`) REFERENCES `record` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `move__record`
+--
+
+LOCK TABLES `move__record` WRITE;
+/*!40000 ALTER TABLE `move__record` DISABLE KEYS */;
+/*!40000 ALTER TABLE `move__record` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
 -- Table structure for table `operation`
 --
 
@@ -121,16 +189,13 @@ CREATE TABLE `operation` (
   `id` int NOT NULL AUTO_INCREMENT,
   `ops_type` int NOT NULL,
   `user_executing` int NOT NULL,
-  `postition` int DEFAULT NULL,
   `comment` varchar(1000) DEFAULT NULL,
   `time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `user_approving` int DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `ops-type_idx` (`ops_type`),
   KEY `ops-user_idx` (`user_executing`),
-  KEY `ops-pos_idx` (`postition`),
   KEY `userappr-ops_idx` (`user_approving`),
-  CONSTRAINT `ops-pos` FOREIGN KEY (`postition`) REFERENCES `position` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
   CONSTRAINT `ops-type` FOREIGN KEY (`ops_type`) REFERENCES `operation_type` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
   CONSTRAINT `ops-user` FOREIGN KEY (`user_executing`) REFERENCES `user` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
   CONSTRAINT `userappr-ops` FOREIGN KEY (`user_approving`) REFERENCES `user` (`id`)
@@ -160,7 +225,7 @@ CREATE TABLE `operation_type` (
   `operation_link` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `idoperation_type_UNIQUE` (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=11 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -169,6 +234,7 @@ CREATE TABLE `operation_type` (
 
 LOCK TABLES `operation_type` WRITE;
 /*!40000 ALTER TABLE `operation_type` DISABLE KEYS */;
+INSERT INTO `operation_type` VALUES (1,'login','record user login','/login'),(2,'logout','record user logout','/logout'),(3,'receipt creation','record manager creating receipt','/receipt'),(4,'other actions usage','record admin creating something using other actions tab','/'),(5,'position move creation','record action of moving a record beetwen positions','/move'),(6,'stock issue creation','record manager creating stock issue','/issue'),(7,'lookup','user looking up something','/lookup'),(8,'receipt handling','record user handling a receipt of goods','/hand'),(9,'issue handling','record user handling a issue of goods','/hand'),(10,'move handling','record user handling a move of goods','/hand');
 /*!40000 ALTER TABLE `operation_type` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -260,12 +326,13 @@ DROP TABLE IF EXISTS `receipt`;
 CREATE TABLE `receipt` (
   `id` int NOT NULL AUTO_INCREMENT,
   `supplier` int DEFAULT NULL,
-  `user_executing` int NOT NULL,
+  `user_executing` int DEFAULT NULL,
   `user_approving` int DEFAULT NULL,
   `position_re` int DEFAULT NULL,
   `time_info` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `comment` varchar(1000) DEFAULT NULL,
   `arrival` datetime DEFAULT NULL,
+  `completed` tinyint(1) DEFAULT '0',
   PRIMARY KEY (`id`),
   KEY `re-user_idx` (`user_executing`),
   KEY `re-pos_idx` (`position_re`),
@@ -352,7 +419,7 @@ LOCK TABLES `record_ops` WRITE;
 UNLOCK TABLES;
 
 --
--- Table structure for table `type-category`
+-- Table structure for table `type__category`
 --
 
 DROP TABLE IF EXISTS `type__category`;
@@ -371,7 +438,7 @@ CREATE TABLE `type__category` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
--- Dumping data for table `type-category`
+-- Dumping data for table `type__category`
 --
 
 LOCK TABLES `type__category` WRITE;
@@ -388,7 +455,7 @@ DROP TABLE IF EXISTS `user`;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `user` (
   `id` int NOT NULL AUTO_INCREMENT,
-  `name` varchar(255) NOT NULL UNIQUE,
+  `name` varchar(255) NOT NULL,
   `hash` varchar(1000) NOT NULL,
   `mail` varchar(255) DEFAULT NULL,
   `phone` varchar(255) DEFAULT NULL,
@@ -396,7 +463,7 @@ CREATE TABLE `user` (
   `last_name` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `name_UNIQUE` (`name`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -405,11 +472,12 @@ CREATE TABLE `user` (
 
 LOCK TABLES `user` WRITE;
 /*!40000 ALTER TABLE `user` DISABLE KEYS */;
+INSERT INTO `user` VALUES (0,'admin','pbkdf2:sha256:260000$OWEXGUTM$c353aff7df74c1ba73ba924e1f4b547bafdc362e72b58b83a30766202c7f418e',NULL,NULL,NULL,NULL);
 /*!40000 ALTER TABLE `user` ENABLE KEYS */;
 UNLOCK TABLES;
 
 --
--- Table structure for table `user-user_type`
+-- Table structure for table `user__user_type`
 --
 
 DROP TABLE IF EXISTS `user__user_type`;
@@ -424,15 +492,16 @@ CREATE TABLE `user__user_type` (
   KEY `type_idx` (`type_id`),
   CONSTRAINT `type` FOREIGN KEY (`type_id`) REFERENCES `user_type` (`id`),
   CONSTRAINT `user` FOREIGN KEY (`user_id`) REFERENCES `user` (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
--- Dumping data for table `user-user_type`
+-- Dumping data for table `user__user_type`
 --
 
 LOCK TABLES `user__user_type` WRITE;
 /*!40000 ALTER TABLE `user__user_type` DISABLE KEYS */;
+INSERT INTO `user__user_type` VALUES (0,0,1),(1,0,2),(2,0,3);
 /*!40000 ALTER TABLE `user__user_type` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -447,7 +516,7 @@ CREATE TABLE `user_type` (
   `id` int NOT NULL AUTO_INCREMENT,
   `type` varchar(255) NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -456,6 +525,7 @@ CREATE TABLE `user_type` (
 
 LOCK TABLES `user_type` WRITE;
 /*!40000 ALTER TABLE `user_type` DISABLE KEYS */;
+INSERT INTO `user_type` VALUES (1,'administrator'),(2,'manager'),(3,'worker');
 /*!40000 ALTER TABLE `user_type` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -489,7 +559,7 @@ LOCK TABLES `warehouse` WRITE;
 UNLOCK TABLES;
 
 --
--- Table structure for table `warehouse-cateogry`
+-- Table structure for table `warehouse__category`
 --
 
 DROP TABLE IF EXISTS `warehouse__category`;
@@ -508,7 +578,7 @@ CREATE TABLE `warehouse__category` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
--- Dumping data for table `warehouse-cateogry`
+-- Dumping data for table `warehouse__category`
 --
 
 LOCK TABLES `warehouse__category` WRITE;
@@ -524,5 +594,5 @@ UNLOCK TABLES;
 /*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
-/*!40111 SET GLOBAL sql_mode=(SELECT REPLACE(@@sql_mode,'ONLY_FULL_GROUP_BY','')) */;
--- Dump completed on 2022-07-27 13:08:15
+
+-- Dump completed on 2022-09-10 17:07:01
