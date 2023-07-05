@@ -38,7 +38,7 @@ After logging using an account with administrator privlages you should create yo
 <br>
 Then you can start using your system by creating a <b>receipt of goods</b> to insert your first records into the system.
 <br>
-Then you can go into the index by clicking <b>miniWMS</b> to handle the receipt of goods or any other action a manger has created previously.
+Then you can go into the index by clicking <b>miniWMS</b> to handle the receipt of goods or any other action a manager has created previously.
 While handling the receipt you should print out both the records and action labels to use them later.
 <br>
 To move your products from the arrival gate to the position their going to stay in you should create a <b>move</b> action.
