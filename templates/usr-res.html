@@ -1,0 +1,65 @@
+{% extends 'layout.html' %} {% block title %} user lookup {% endblock title
+    %} {% block main %}
+    <table class="table">
+      <tr>
+        <th>id</th>
+        <td>{{ usr.id }}</td>
+      </tr>
+      <tr>
+        <th>username</th>
+        <td>{{ usr.name }}</td>
+      </tr>
+      <tr>
+        <th>legal name</th>
+        <td>{{ usr.first_name }} {{ usr.last_name }}</td>
+      </tr>
+      <tr>
+        <th>mail</th>
+        <td>{{ usr.mail }}</td>
+      </tr>
+      <tr>
+        <th>bank info</th>
+        <td>{{ usr.phone }}</td>
+      </tr>
+    <tr>
+      <th>issues</th>
+      <td>
+        approved:
+        {% for i in iss_a %}
+        <a href="/lkres?t=iss&id={{ i.id }}">{{ i.id }}</a>, 
+        {% endfor %}
+        handled:
+        {% for i in iss_h %}
+        <a href="/lkres?t=iss&id={{ i.id }}">{{ i.id }}</a>, 
+        {% endfor %}
+      </td>
+    </tr>
+    <tr>
+      <th>receipts</th>
+      <td>
+        approved:
+        {% for i in rei_a%}
+        <a href="/lkres?t=rei&id={{ i.id }}">{{ i.id }}</a>, 
+        {% endfor %}
+        handled:
+        {% for i in rei_h %}
+        <a href="/lkres?t=rei&id={{ i.id }}">{{ i.id }}</a>, 
+        {% endfor %}
+      </td>
+    </tr>
+    <tr>
+        <th>moves</th>
+        <td>
+          approved:
+          {% for i in mov_a%}
+          <a href="/lkres?t=mov&id={{ i.id }}">{{ i.id }}</a>, 
+          {% endfor %}
+          handled:
+          {% for i in mov_h %}
+          <a href="/lkres?t=mov&id={{ i.id }}">{{ i.id }}</a>, 
+          {% endfor %}
+        </td>
+      </tr>
+    </table>
+    {% endblock main %}
+    

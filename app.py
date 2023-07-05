@@ -656,10 +656,13 @@ def loku():
             return flask.redirect("/")
         que = flask.request.form.get("idl")
         qq = que.split("-")
-        if not (qq[0] == "rec" or qq[0] == "iss" or qq[0] == "mov" or qq[0] == "pos" or qq[0] == "rei" or qq[0] == "typ"):
+        if(qq[0] == "rec" or qq[0] == "iss" or qq[0] == "mov" or qq[0] == "pos" or qq[0] == "rei" or qq[0] == "typ"):
+            return flask.redirect("/lkres?t={}&id={}".format(qq[0],qq[1]))
+        elif(qq[0] == "org" or qq[0] == "usr"):
+            return flask.redirect("/lkres_priv?t={}&id={}".format(qq[0],qq[1]))
+        else:
             flask.flash("prefix not valid")
             return flask.redirect("/")
-        return flask.redirect("/lkres?t={}&id={}".format(qq[0],qq[1]))
     return flask.render_template("lookup.html")
 @app.route("/lkres", methods = ["GET"])
 @login_required
@@ -736,6 +739,7 @@ def lokres():
             dbs.begin()
             q = dbs.scalars(sa.select(good_type).where(good_type.id == ii)).first()
             if not q:
+                dbs.rollback()
                 raise
             r = dbs.scalars(sa.select(record).where(record.type == q.id)).all()
             dbs.add(operation_log(7))
@@ -746,6 +750,55 @@ def lokres():
     else:
         flask.flash("cannot load lookup. check your id and type")
         return flask.redirect("/")
+
+
+@app.route("/lkres_priv", methods = ["GET","POST"])
+@login_required
+@manager_required
+def private_data_lookup():
+    tt = flask.request.args.get("t")
+    ii = flask.request.args.get("id")
+    if tt == "org":
+        try:
+            dbs.begin()
+            q = dbs.scalars(sa.select(outside_org).where(outside_org.id == ii)).first()
+            if not q:
+                dbs.rollback()
+                raise
+            iss = dbs.scalars(sa.select(issue).where(issue.customer == q.id)).all()
+            rei = dbs.scalars(sa.select(receipt).where(receipt.supplier == q.id)).all()
+            dbs.add(operation_log(7))
+            return flask.render_template("org-res.html", org = q, iss = iss, rei = rei), dbs.commit()
+        except:
+            dbs.rollback()
+            flask.flash("cannot load lookup. check your id")
+            return flask.redirect("/")
+    elif tt == "usr":
+        try:
+            dbs.begin()
+            q = dbs.scalars(sa.select(user).where(user.id == ii)).first()
+            if not q:
+                dbs.rollback()
+                raise
+            # approved
+            iss_a = dbs.scalars(sa.select(issue).where(issue.user_approving == q.id)).all()
+            rei_a = dbs.scalars(sa.select(receipt).where(receipt.user_approving == q.id)).all()
+            mov_a = dbs.scalars(sa.select(move).where(move.user_approving == q.id)).all()
+            # handled
+            iss_h = dbs.scalars(sa.select(issue).where(issue.user_executing == q.id)).all()
+            rei_h = dbs.scalars(sa.select(receipt).where(receipt.user_executing == q.id)).all()
+            mov_h = dbs.scalars(sa.select(move).where(move.user_executing == q.id)).all()
+            dbs.add(operation_log(7))
+            return flask.render_template("usr-res.html", usr = q, iss_a = iss_a, rei_a = rei_a, mov_a = mov_a, iss_h = iss_h, rei_h = rei_h, mov_h = mov_h), dbs.commit()
+        except:
+            dbs.rollback()
+            flask.flash("cannot load lookup. check your id")
+            return flask.redirect("/")
+    else:
+        flask.flash("cannot load lookup. check your id and type")
+        return flask.redirect("/")
+                                  
+
 @app.route("/register", methods = ["GET","POST"])
 @login_required
 @admin_required

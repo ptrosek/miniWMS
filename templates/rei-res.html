@@ -7,15 +7,15 @@
   </tr>
   <tr>
     <th>customer</th>
-    <td><a href="/lkres?t=cus&id={{ rei.supplier }}">{{ rei.supplier }}</a></td>
+    <td><a href="/lkres_priv?t=org&id={{ rei.supplier }}">{{ rei.supplier }}</a></td>
   </tr>
   <tr>
     <th>user executing</th>
-    <td>{{ rei.user_executing }}</td>
+    <td><a href="/lkres_priv?t=usr&id={{ rei.user_executing }}">{{ rei.user_executing }}</a></td>
   </tr>
   <tr>
     <th>user approving</th>
-    <td>{{ rei.user_approving }}</td>
+    <td><a href="/lkres_priv?t=usr&id={{ rei.user_approving }}">{{ rei.user_approving }}</a></td>
   </tr>
   <tr>
     <th>position</th>

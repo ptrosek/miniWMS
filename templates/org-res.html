@@ -1,0 +1,42 @@
+{% extends 'layout.html' %} {% block title %} outside_org lookup {% endblock title
+    %} {% block main %}
+    <table class="table">
+      <tr>
+        <th>id</th>
+        <td>{{ org.id }}</td>
+      </tr>
+      <tr>
+        <th>name</th>
+        <td>{{ org.id }}</td>
+      </tr>
+      <tr>
+        <th>mail</th>
+        <td>{{ org.mail }}</td>
+      </tr>
+      <tr>
+        <th>bank info</th>
+        <td>{{ org.bank_info }}</td>
+      </tr>
+      <tr>
+        <th>address</th>
+        <td>{{ org.addres }}</td>
+      </tr>
+    <tr>
+      <th>issues</th>
+      <td>
+        {% for i in iss %}
+        <a href="/lkres?t=iss&id={{ i.id }}">{{ i.id }}</a>, 
+        {% endfor %}
+      </td>
+    </tr>
+    <tr>
+      <th>receipts</th>
+      <td>
+        {% for i in rei %}
+        <a href="/lkres?t=rei&id={{ i.id }}">{{ i.id }}</a>, 
+        {% endfor %}
+      </td>
+    </tr>
+    </table>
+    {% endblock main %}
+    

@@ -6,11 +6,12 @@
         <td>{{ mov.id }}</td>
       </tr>
         <th>user executing</th>
-        <td>{{ mov.user_executing }}</td>
+        <td><a href="/lkres_priv?t=usr&id={{ mov.user_executing }}">{{ mov.user_executing }}</a></td>
       </tr>
       <tr>
         <th>user approving</th>
-        <td>{{ mov.user_approving }}</td>
+        <td>
+          <a href="/lkres_priv?t=usr&id={{ mov.user_approving }}">{{ mov.user_approving }}</a></td>
       </tr>
       <tr>
         <th>end position</th>
