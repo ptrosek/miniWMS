@@ -14,6 +14,9 @@ app.config["TEMPLATES_AUTO_RELOAD"] = True
 app.config["SESSION_PERMANENT"] = False
 app.config["SESSION_TYPE"] = "filesystem"
 
+app.config["SQLALCHEMY_ECHO"] = True
+
+
 Session(app)
 # db setup
 # get login data for mysql server 
@@ -24,7 +27,7 @@ DB_PASS = os.environ.get('DB_PASS_MWS')
 
 # creating sqlalchemy connection string and connecting the engine
 try:
-    txt = 'mysql://{duser}:{dpass}@localhost/miniwms'.format(duser = DB_USER, dpass = DB_PASS)
+    txt = 'mysql://{DB_USER}:{DB_PASS}@127.0.0.1/miniwms'.format(duser = DB_USER, dpass = DB_PASS)
     engine = sa.create_engine(txt, echo=False, future=True)
     meta = sa.MetaData()
     Base = automap_base()
@@ -504,6 +507,7 @@ def rec():
 @manager_required
 def iss():
     if flask.request.method == "POST":
+        print(flask.request.form)
         supp = flask.request.form.get("supp")
         usera =flask.session["user_id"]
         if flask.request.form.get("uu") == "any":
@@ -537,6 +541,7 @@ def iss():
             dbs.add(op)
             dbs.flush()
             for i in range(int(num)):
+                print(i)
                 gtt = flask.request.form.get("gtt{}".format(i))
                 gtn = int(flask.request.form.get("gtn{}".format(i)))
                 recs = dbs.query(record).where(sa.and_(record.issue_rec == None, record.type == gtt))
@@ -549,6 +554,7 @@ def iss():
                     if idx == gtn:
                         break
                     stmt = sa.update(record).where(record.id == rec.id).values(issue_rec = q.id)
+                    print(stmt)
                     dbs.execute(stmt)
                     k = record_ops(
                         record_id = rec.id,
@@ -578,7 +584,6 @@ def iss():
                 list_p.append({'id': pos.id, 'row': pos.row, 'column': pos.column, 'cell': pos.cell, 'zone': pos.zone, 'warehouse_pos': pos.warehouse_pos})
             list_g = []
             goods = dbs.query(good_type, sa.func.count(record.id)).join(record).where(record.issue_rec == None).group_by(record.type)
-            print(goods)
             for good in goods:
                 list_g.append({'id': good.good_type.id, 'name':good.good_type.name, 'ean': good.good_type.ean, 'amount': good[1]})
             dbs.commit()
@@ -974,32 +979,80 @@ def hand():
         if typ == "iss":
             try:
                 dbs.begin()
-                q = dbs.scalars(sa.select(record).where(record.receipt_rec == aid))
+                q = dbs.scalars(sa.select(record).where(record.issue_rec == aid))
+                
+                iss_c = dbs.scalars(sa.select(issue).where(issue.id == aid)).first()
+                if not iss_c:
+                    flask.flash("Issue not found")
+                    return flask.redirect("/")
+
+                records_found = False
+                
                 for i in q:
+                    records_found = True
                     if not flask.request.form.get("ans{}".format(i.id)) == "rec-{}".format(i.id):
                         flask.flash("scanned records dont match records")
                         return flask.redirect("/")
+                    iu = sa.update(record).where(record.id == i.id).values(issue_rec = aid)
+                    dbs.execute(iu) position
+                    ps = sa.update(record).where(record.id == i.id).values(current_position = iss_c.position_is)
+                    dbs.execute(ps)
+                
+                if not records_found:
+                    flask.flash("No records found for this issue")
+                    return flask.redirect("/")
+
                 w = sa.update(issue).where(issue.id == aid).values(completed=1)
                 dbs.execute(w)
+                
                 dbs.add(operation_log(9))
+                dbs.commit()
                 flask.flash("operation succesfully completed")
-                return flask.redirect("/"), dbs.commit()
-            except:
+                return flask.redirect("/")
+            except Exception as e:
+                dbs.rollback()
                 flask.flash("error while compliting this operation")
                 return flask.redirect("/")
         if typ == "mov":
             try:
                 dbs.begin()
+                
+                mov_c = dbs.scalars(sa.select(move).where(move.id == aid)).first()
+                
+                if not mov_c:
+                    flask.flash("Move action not found")
+                    return flask.redirect("/")
                 q = dbs.scalars(sa.select(move__record).where(move__record.move_id == aid)).all()
+                
+                records_found = False
                 for i in q:
+                    records_found = True
                     if not flask.request.form.get("ans{}".format(i.record_id)) == "rec-{}".format(i.record_id):
                         flask.flash("scanned records dont match records")
                         return flask.redirect("/")
+                    target_pos = mov_c.end_pos 
+
+                    iu = sa.update(record).where(record.id == i.record_id).values(current_position=target_pos)
+                    dbs.execute(iu)
+
+                if not records_found:
+                    flask.flash("No records found for this move")
+                    return flask.redirect("/")
+
                 w = sa.update(move).where(move.id == aid).values(completed=1)
                 dbs.execute(w)
+                
                 dbs.add(operation_log(10))
+                dbs.commit()
+                
                 flask.flash("operation succesfully completed")
-                return flask.redirect("/"), dbs.commit()
+                return flask.redirect("/")
+                
+            except Exception as e:
+                dbs.rollback()
+                print(f"Error while handling MOV: {e}")
+                flask.flash("error while completing this operation")
+                return flask.redirect("/")
             except:
                 flask.flash("error while compliting this operation")
                 return flask.redirect("/")     
