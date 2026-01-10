@@ -994,7 +994,7 @@ def hand():
                         flask.flash("scanned records dont match records")
                         return flask.redirect("/")
                     iu = sa.update(record).where(record.id == i.id).values(issue_rec = aid)
-                    dbs.execute(iu) position
+                    dbs.execute(iu)
                     ps = sa.update(record).where(record.id == i.id).values(current_position = iss_c.position_is)
                     dbs.execute(ps)
                 
